@@ -17,29 +17,35 @@ function App() {
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    fetchWorkoutHistory();
-  }, []);
-
+  // Fetch workout history
   const fetchWorkoutHistory = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/GetWorkouts`, {
-        params: { userID: 'user1' }
+      const response = await axios.get(API_URL, {
+        params: {
+          userID: 'user1'
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       setWorkoutHistory(response.data || []);
     } catch (error) {
       console.error('Error fetching history:', error);
-      alert('Failed to load workout history');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Submit new workout
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_URL}/CreateWorkout`, workout);
+      await axios.post(API_URL, workout, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       alert('Workout saved! 💪');
       setWorkout({
         userID: 'user1',
@@ -49,83 +55,20 @@ function App() {
         sets: '',
         notes: ''
       });
-      fetchWorkoutHistory();
+      fetchWorkoutHistory(); // Refresh history
     } catch (error) {
       alert(`Error: ${error.response?.data?.error || error.message}`);
     }
   };
 
+  // Load history on component mount
+  useEffect(() => {
+    fetchWorkoutHistory();
+  }, []);
+
   return (
     <div className="app">
-      <h1>I WANT ABS 🏋️</h1>
-      
-      {/* Workout Entry Form */}
-      <div className="workout-form">
-        <h2>New Workout</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Exercise Name"
-            value={workout.exerciseName}
-            onChange={(e) => setWorkout({...workout, exerciseName: e.target.value})}
-            required
-          />
-          
-          <div className="input-group">
-            <input
-              type="number"
-              placeholder="Weight (lbs)"
-              value={workout.weight}
-              onChange={(e) => setWorkout({...workout, weight: e.target.value})}
-            />
-            <input
-              type="number"
-              placeholder="Reps"
-              value={workout.reps}
-              onChange={(e) => setWorkout({...workout, reps: e.target.value})}
-            />
-            <input
-              type="number"
-              placeholder="Sets"
-              value={workout.sets}
-              onChange={(e) => setWorkout({...workout, sets: e.target.value})}
-            />
-          </div>
-
-          <textarea
-            placeholder="Notes"
-            value={workout.notes}
-            onChange={(e) => setWorkout({...workout, notes: e.target.value})}
-          />
-
-          <button type="submit">Save Workout</button>
-        </form>
-      </div>
-
-      {/* Workout History */}
-      <div className="history-section">
-        <h2>Workout History</h2>
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : workoutHistory.length === 0 ? (
-          <p>No workouts recorded yet</p>
-        ) : (
-          <div className="history-grid">
-            {workoutHistory.map((item) => (
-              <div key={item.workoutID} className="workout-card">
-                <h3>{item.exerciseName}</h3>
-                <div className="workout-metrics">
-                  {item.weight && <span>🏋️ {item.weight} lbs</span>}
-                  {item.reps && <span>🔁 {item.reps} reps</span>}
-                  {item.sets && <span>🔄 {item.sets} sets</span>}
-                  {item.date && <span>📅 {new Date(item.date).toLocaleDateString()}</span>}
-                </div>
-                {item.notes && <p className="notes">📝 {item.notes}</p>}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* ... (keep your existing JSX) ... */}
     </div>
   );
 }
