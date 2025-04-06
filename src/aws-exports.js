@@ -1,0 +1,13 @@
+const awsConfig = {
+    API: {
+      endpoints: [
+        {
+          name: "WorkoutAPI",
+          endpoint: "https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod",
+          region: "us-east-1"
+        }
+      ]
+    }
+  };
+  
+  export default awsConfig;
