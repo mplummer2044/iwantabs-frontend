@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
+const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
 function App() {
   const [workout, setWorkout] = useState({
@@ -14,26 +14,22 @@ function App() {
     notes: ''
   });
 
-  const [workoutHistory, setWorkoutHistory] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [workouts, setWorkouts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch workout history
-  const fetchWorkoutHistory = async () => {
-    setIsLoading(true);
+  // Fetch workouts from API
+  const fetchWorkouts = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get(API_URL, {
-        params: {
-          userID: 'user1'
-        },
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      const res = await axios.get(`${API_BASE}/`, {  // Note the trailing slash
+        params: { userID: 'user1' }
       });
-      setWorkoutHistory(response.data || []);
-    } catch (error) {
-      console.error('Error fetching history:', error);
+      setWorkouts(res.data || []);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      alert("Failed to load workouts");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -41,12 +37,8 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(API_URL, workout, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      alert('Workout saved! 💪');
+      await axios.post(`${API_BASE}/`, workout);  // Note the trailing slash
+      alert('Workout saved!');
       setWorkout({
         userID: 'user1',
         exerciseName: '',
@@ -55,20 +47,84 @@ function App() {
         sets: '',
         notes: ''
       });
-      fetchWorkoutHistory(); // Refresh history
-    } catch (error) {
-      alert(`Error: ${error.response?.data?.error || error.message}`);
+      fetchWorkouts(); // Refresh list
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Failed to save workout");
     }
   };
 
-  // Load history on component mount
+  // Load initial data
   useEffect(() => {
-    fetchWorkoutHistory();
+    fetchWorkouts();
   }, []);
 
   return (
     <div className="app">
-      {/* ... (keep your existing JSX) ... */}
+      <h1>I WANT ABS 🏋️</h1>
+      
+      {/* Workout Form */}
+      <div className="workout-form">
+        <h2>Log New Workout</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Exercise name"
+            value={workout.exerciseName}
+            onChange={(e) => setWorkout({...workout, exerciseName: e.target.value})}
+            required
+          />
+          
+          <div className="input-row">
+            <input
+              type="number"
+              placeholder="Weight"
+              value={workout.weight}
+              onChange={(e) => setWorkout({...workout, weight: e.target.value})}
+            />
+            <input
+              type="number"
+              placeholder="Reps"
+              value={workout.reps}
+              onChange={(e) => setWorkout({...workout, reps: e.target.value})}
+            />
+            <input
+              type="number"
+              placeholder="Sets"
+              value={workout.sets}
+              onChange={(e) => setWorkout({...workout, sets: e.target.value})}
+            />
+          </div>
+
+          <textarea
+            placeholder="Notes"
+            value={workout.notes}
+            onChange={(e) => setWorkout({...workout, notes: e.target.value})}
+          />
+
+          <button type="submit">Save Workout</button>
+        </form>
+      </div>
+
+      {/* Workout History */}
+      <div className="workout-history">
+        <h2>Your Workouts</h2>
+        {loading ? (
+          <p>Loading...</p>
+        ) : workouts.length === 0 ? (
+          <p>No workouts yet</p>
+        ) : (
+          <div className="workout-list">
+            {workouts.map((w) => (
+              <div key={w.workoutID} className="workout-card">
+                <h3>{w.exerciseName}</h3>
+                <p>Weight: {w.weight} lbs | Sets: {w.sets} | Reps: {w.reps}</p>
+                {w.notes && <p className="notes">Notes: {w.notes}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
