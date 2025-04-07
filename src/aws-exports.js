@@ -1,5 +1,4 @@
 const awsConfig = {
-  // Your existing API config
   API: {
     endpoints: [
       {
@@ -9,14 +8,10 @@ const awsConfig = {
       }
     ]
   },
-
-  // Cognito configuration
   Auth: {
-    region: 'us-east-1',
-    userPoolId: 'us-east-1_lcZMlbm3c',
-    userPoolWebClientId: '68peajep7rg98ti9dtr76q8s1l',
-    authenticationFlowType: 'USER_SRP_AUTH' // Recommended flow
+    Cognito: {
+      userPoolId: 'us-east-1_lcZMlbm3c',
+      userPoolClientId: '68peajep7rg98ti9dtr76q8s1l'
+    }
   }
 };
-
-export default awsConfig;
