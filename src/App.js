@@ -6,11 +6,11 @@ const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
 function App() {
   const [workout, setWorkout] = useState({
-    userID: 'user1',
     exerciseName: '',
     weight: '',
     reps: '',
     sets: '',
+    distance: '',
     notes: ''
   });
 
@@ -21,12 +21,15 @@ function App() {
   const fetchWorkouts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/`, {  // Note the trailing slash
-        params: { userID: 'user1' }
+      const res = await axios.get(`${API_BASE}/`, {
+        params: { userID: 'user1' },
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       setWorkouts(res.data || []);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Fetch error:", err.response?.data || err.message);
       alert("Failed to load workouts");
     } finally {
       setLoading(false);
@@ -36,21 +39,43 @@ function App() {
   // Submit new workout
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prepare payload matching Lambda requirements exactly
+    const payload = {
+      userID: 'user1',
+      workoutID: Date.now().toString(),
+      exerciseName: workout.exerciseName || '',
+      date: new Date().toISOString(),
+      weight: workout.weight ? Number(workout.weight) : 0,
+      reps: workout.reps ? Number(workout.reps) : 0,
+      sets: workout.sets ? Number(workout.sets) : 0,
+      distance: workout.distance ? Number(workout.distance) : 0,
+      notes: workout.notes || ''
+    };
+
     try {
-      await axios.post(`${API_BASE}/`, workout);  // Note the trailing slash
-      alert('Workout saved!');
+      const response = await axios.post(`${API_BASE}/`, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      alert('Workout saved successfully!');
       setWorkout({
-        userID: 'user1',
         exerciseName: '',
         weight: '',
         reps: '',
         sets: '',
+        distance: '',
         notes: ''
       });
-      fetchWorkouts(); // Refresh list
+      fetchWorkouts();
     } catch (err) {
-      console.error("Save error:", err);
-      alert("Failed to save workout");
+      console.error("Save failed:", {
+        sentData: payload,
+        error: err.response?.data || err.message
+      });
+      alert(`Save failed: ${err.response?.data?.error || err.message}`);
     }
   };
 
@@ -78,7 +103,7 @@ function App() {
           <div className="input-row">
             <input
               type="number"
-              placeholder="Weight"
+              placeholder="Weight (lbs)"
               value={workout.weight}
               onChange={(e) => setWorkout({...workout, weight: e.target.value})}
             />
@@ -93,6 +118,15 @@ function App() {
               placeholder="Sets"
               value={workout.sets}
               onChange={(e) => setWorkout({...workout, sets: e.target.value})}
+            />
+          </div>
+
+          <div className="input-row">
+            <input
+              type="number"
+              placeholder="Distance (miles)"
+              value={workout.distance}
+              onChange={(e) => setWorkout({...workout, distance: e.target.value})}
             />
           </div>
 
@@ -118,8 +152,14 @@ function App() {
             {workouts.map((w) => (
               <div key={w.workoutID} className="workout-card">
                 <h3>{w.exerciseName}</h3>
-                <p>Weight: {w.weight} lbs | Sets: {w.sets} | Reps: {w.reps}</p>
-                {w.notes && <p className="notes">Notes: {w.notes}</p>}
+                <div className="workout-stats">
+                  {w.weight > 0 && <span>🏋️ {w.weight} lbs</span>}
+                  {w.reps > 0 && <span>🔁 {w.reps} reps</span>}
+                  {w.sets > 0 && <span>🔄 {w.sets} sets</span>}
+                  {w.distance > 0 && <span>🏃 {w.distance} miles</span>}
+                  {w.date && <span>📅 {new Date(w.date).toLocaleDateString()}</span>}
+                </div>
+                {w.notes && <p className="notes">📝 {w.notes}</p>}
               </div>
             ))}
           </div>
