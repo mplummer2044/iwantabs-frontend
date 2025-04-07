@@ -3,15 +3,27 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { Amplify } from 'aws-amplify';
+import awsConfig from './aws-exports';
+import { withAuthenticator } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
 
+// Configure Amplify with your settings
+Amplify.configure(awsConfig);
+
+// Wrap your App component with authentication
+const AppWithAuth = withAuthenticator(App, {
+  signUpAttributes: ['email'], // Fields for signup
+  loginMechanisms: ['email']   // Login with email
+});
+
+// Create root and render the authenticated app
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <AppWithAuth />
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// Performance monitoring (optional)
 reportWebVitals();

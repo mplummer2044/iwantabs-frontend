@@ -220,3 +220,26 @@ button {
   color: #666;
   font-style: italic;
 }
+
+/* Add to App.css */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sign-out-button {
+  background: #ff4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sign-out-button:hover {
+  background: #cc0000;
+}
+
+/* Existing workout form styles... */
