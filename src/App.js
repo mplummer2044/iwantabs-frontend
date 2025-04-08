@@ -203,5 +203,6 @@ function App({ signOut, user }) {
       </div>
     </div>
   );
+}
 
 export default withAuthenticator(App);
