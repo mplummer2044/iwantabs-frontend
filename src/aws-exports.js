@@ -11,7 +11,7 @@ const awsConfig = {
   Auth: {
     Cognito: {
       userPoolId: 'us-east-1_lcZMlbm3c',
-      userPoolClientId: '68peajep7rg98ti9dtr76q8s1l',
+      userPoolClientId: '5p646eiimag416fhhai5bhgrf6',
       loginWith: {
         oauth: {
           redirectSignIn: ['https://main.d1atihsq0v31p5.amplifyapp.com'],
