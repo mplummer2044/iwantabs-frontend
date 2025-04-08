@@ -109,7 +109,6 @@ function App({ signOut, user }) {
     }
   };
 
-  // Keep your existing return JSX exactly the same
   return (
     <div className="app">
       <header className="app-header">
@@ -126,19 +125,83 @@ function App({ signOut, user }) {
         <h2>Log New Workout</h2>
         {currentUser ? (
           <form onSubmit={handleSubmit}>
-            {/* ... keep all your existing form JSX ... */}
+            <input
+              type="text"
+              placeholder="Exercise name"
+              value={workout.exerciseName}
+              onChange={(e) => setWorkout({...workout, exerciseName: e.target.value})}
+              required
+            />
+            
+            <div className="input-grid">
+              <input
+                type="number"
+                placeholder="Weight (lbs)"
+                value={workout.weight}
+                onChange={(e) => setWorkout({...workout, weight: e.target.value})}
+              />
+              <input
+                type="number"
+                placeholder="Reps"
+                value={workout.reps}
+                onChange={(e) => setWorkout({...workout, reps: e.target.value})}
+              />
+              <input
+                type="number"
+                placeholder="Sets"
+                value={workout.sets}
+                onChange={(e) => setWorkout({...workout, sets: e.target.value})}
+              />
+            </div>
+  
+            <div className="input-row">
+              <input
+                type="number"
+                placeholder="Distance (miles)"
+                value={workout.distance}
+                onChange={(e) => setWorkout({...workout, distance: e.target.value})}
+              />
+            </div>
+  
+            <textarea
+              placeholder="Notes"
+              value={workout.notes}
+              onChange={(e) => setWorkout({...workout, notes: e.target.value})}
+            />
+  
+            <button type="submit">Save Workout</button>
           </form>
         ) : (
           <p>Please sign in to log workouts</p>
         )}
       </div>
-
+  
       {/* Workout History */}
       <div className="workout-history">
-        {/* ... keep your existing history JSX ... */}
+        <h2>Your Workouts</h2>
+        {loading ? (
+          <p>Loading...</p>
+        ) : workouts.length === 0 ? (
+          <p>{currentUser ? "No workouts yet" : "Sign in to view your workouts"}</p>
+        ) : (
+          <div className="workout-grid">
+            {workouts.map((w) => (
+              <div key={w.workoutID} className="workout-card">
+                <h3>{w.exerciseName}</h3>
+                <div className="workout-stats">
+                  {w.weight > 0 && <span>🏋️ {w.weight} lbs</span>}
+                  {w.reps > 0 && <span>🔁 {w.reps} reps</span>}
+                  {w.sets > 0 && <span>🔄 {w.sets} sets</span>}
+                  {w.distance > 0 && <span>🏃 {w.distance} miles</span>}
+                  {w.date && <span>📅 {new Date(w.date).toLocaleDateString()}</span>}
+                </div>
+                {w.notes && <p className="notes">📝 {w.notes}</p>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-}
 
 export default withAuthenticator(App);
