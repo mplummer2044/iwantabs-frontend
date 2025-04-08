@@ -8,16 +8,19 @@ import './App.css';
 const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
 function App({ signOut, user }) {
-  const [workout, setWorkout] = useState({
-    exerciseName: '',
-    weight: '',
-    reps: '',
-    sets: '',
-    distance: '',
-    notes: ''
+  const [workoutTemplates, setWorkoutTemplates] = useState([]);
+  const [activeWorkout, setActiveWorkout] = useState(null);
+  const [currentTemplate, setCurrentTemplate] = useState({
+    name: '',
+    exercises: [{
+      name: '',
+      measurementType: 'weights',
+      sets: 1,
+      previousStats: null
+    }]
   });
-
-  const [workouts, setWorkouts] = useState([]);
+  
+  const [workoutHistory, setWorkoutHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -43,69 +46,71 @@ function App({ signOut, user }) {
     setLoading(true);
     try {
       const { tokens } = await fetchAuthSession();
-      const res = await axios.get(`${API_BASE}/`, {
+      const res = await axios.get(`${API_BASE}/workouts`, {
         headers: {
-          Authorization: `Bearer ${tokens?.idToken?.toString()}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${tokens?.idToken?.toString()}`
         },
-        params: {
-          userID: currentUser.username
-        }
+        params: { userID: currentUser.username }
       });
-      setWorkouts(res.data || []);
+      setWorkoutTemplates(res.data.templates || []);
+      setWorkoutHistory(res.data.history || []);
     } catch (err) {
-      console.error("Fetch error:", err.response?.data || err.message);
+      console.error("Fetch error:", err);
       alert("Failed to load workouts");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!currentUser?.username) {
-      alert("Please sign in to save workouts");
-      return;
-    }
-
-    const payload = {
-      userID: currentUser.username,
-      workoutID: Date.now().toString(),
-      exerciseName: workout.exerciseName || '',
-      date: new Date().toISOString(),
-      weight: workout.weight ? Number(workout.weight) : 0,
-      reps: workout.reps ? Number(workout.reps) : 0,
-      sets: workout.sets ? Number(workout.sets) : 0,
-      distance: workout.distance ? Number(workout.distance) : 0,
-      notes: workout.notes || ''
-    };
-
+  const createWorkoutTemplate = async () => {
     try {
       const { tokens } = await fetchAuthSession();
-      await axios.post(`${API_BASE}/`, payload, {
+      await axios.post(`${API_BASE}/templates`, currentTemplate, {
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${tokens?.idToken?.toString()}`
         }
       });
-      
-      alert('Workout saved successfully!');
-      setWorkout({
-        exerciseName: '',
-        weight: '',
-        reps: '',
-        sets: '',
-        distance: '',
-        notes: ''
+      fetchWorkouts();
+      setCurrentTemplate({ name: '', exercises: [] });
+    } catch (err) {
+      console.error("Template creation failed:", err);
+    }
+  };
+
+  const startWorkout = (template) => {
+    const previousWorkout = workoutHistory.find(w => w.templateId === template.id);
+    setActiveWorkout({
+      ...template,
+      startTime: new Date().toISOString(),
+      exercises: template.exercises.map(exercise => ({
+        ...exercise,
+        sets: Array(exercise.sets).fill().map((_, i) => ({
+          setNumber: i + 1,
+          status: 'pending',
+          values: previousWorkout?.exercises[i]?.values || {}
+        }))
+      }))
+    });
+  };
+
+  const updateSetStatus = (exerciseIndex, setIndex, status) => {
+    const updatedExercises = [...activeWorkout.exercises];
+    updatedExercises[exerciseIndex].sets[setIndex].status = status;
+    setActiveWorkout({ ...activeWorkout, exercises: updatedExercises });
+  };
+
+  const saveWorkoutProgress = async () => {
+    try {
+      const { tokens } = await fetchAuthSession();
+      await axios.post(`${API_BASE}/workouts`, activeWorkout, {
+        headers: {
+          Authorization: `Bearer ${tokens?.idToken?.toString()}`
+        }
       });
+      setActiveWorkout(null);
       fetchWorkouts();
     } catch (err) {
-      console.error("Save failed:", {
-        sentData: payload,
-        error: err.response?.data || err.message
-      });
-      alert(`Save failed: ${err.response?.data?.error || err.message}`);
+      console.error("Save failed:", err);
     }
   };
 
@@ -113,93 +118,129 @@ function App({ signOut, user }) {
     <div className="app">
       <header className="app-header">
         <h1>I WANT ABS 🏋️</h1>
-        {user && (
-          <button onClick={signOut} className="sign-out-button">
-            Sign Out
-          </button>
-        )}
+        {user && <button onClick={signOut} className="sign-out-button">Sign Out</button>}
       </header>
-      
-      {/* Workout Form */}
-      <div className="workout-form">
-        <h2>Log New Workout</h2>
-        {currentUser ? (
-          <form onSubmit={handleSubmit}>
+
+      {/* Workout Template Creation */}
+      <div className="workout-creator">
+        <h2>Create Workout Template</h2>
+        <input
+          type="text"
+          placeholder="Workout Name"
+          value={currentTemplate.name}
+          onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
+        />
+        
+        {currentTemplate.exercises.map((exercise, index) => (
+          <div key={index} className="exercise-block">
             <input
-              type="text"
-              placeholder="Exercise name"
-              value={workout.exerciseName}
-              onChange={(e) => setWorkout({...workout, exerciseName: e.target.value})}
-              required
+              placeholder="Exercise Name"
+              value={exercise.name}
+              onChange={(e) => {
+                const exercises = [...currentTemplate.exercises];
+                exercises[index].name = e.target.value;
+                setCurrentTemplate({ ...currentTemplate, exercises });
+              }}
             />
-            
-            <div className="input-grid">
-              <input
-                type="number"
-                placeholder="Weight (lbs)"
-                value={workout.weight}
-                onChange={(e) => setWorkout({...workout, weight: e.target.value})}
-              />
-              <input
-                type="number"
-                placeholder="Reps"
-                value={workout.reps}
-                onChange={(e) => setWorkout({...workout, reps: e.target.value})}
-              />
-              <input
-                type="number"
-                placeholder="Sets"
-                value={workout.sets}
-                onChange={(e) => setWorkout({...workout, sets: e.target.value})}
-              />
-            </div>
-  
-            <div className="input-row">
-              <input
-                type="number"
-                placeholder="Distance (miles)"
-                value={workout.distance}
-                onChange={(e) => setWorkout({...workout, distance: e.target.value})}
-              />
-            </div>
-  
-            <textarea
-              placeholder="Notes"
-              value={workout.notes}
-              onChange={(e) => setWorkout({...workout, notes: e.target.value})}
-            />
-  
-            <button type="submit">Save Workout</button>
-          </form>
-        ) : (
-          <p>Please sign in to log workouts</p>
-        )}
+            <select
+              value={exercise.measurementType}
+              onChange={(e) => {
+                const exercises = [...currentTemplate.exercises];
+                exercises[index].measurementType = e.target.value;
+                setCurrentTemplate({ ...currentTemplate, exercises });
+              }}
+            >
+              <option value="weights">Weight x Sets x Reps</option>
+              <option value="cardio">Distance</option>
+              <option value="timed">Time</option>
+            </select>
+            <button
+              onClick={() => {
+                const exercises = currentTemplate.exercises.filter((_, i) => i !== index);
+                setCurrentTemplate({ ...currentTemplate, exercises });
+              }}
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+        
+        <button onClick={() => setCurrentTemplate({
+          ...currentTemplate,
+          exercises: [...currentTemplate.exercises, { name: '', measurementType: 'weights' }]
+        })}>
+          Add Exercise
+        </button>
+        
+        <button onClick={createWorkoutTemplate}>Save Template</button>
       </div>
-  
-      {/* Workout History */}
-      <div className="workout-history">
-        <h2>Your Workouts</h2>
-        {loading ? (
-          <p>Loading...</p>
-        ) : workouts.length === 0 ? (
-          <p>{currentUser ? "No workouts yet" : "Sign in to view your workouts"}</p>
-        ) : (
-          <div className="workout-grid">
-            {workouts.map((w) => (
-              <div key={w.workoutID} className="workout-card">
-                <h3>{w.exerciseName}</h3>
-                <div className="workout-stats">
-                  {w.weight > 0 && <span>🏋️ {w.weight} lbs</span>}
-                  {w.reps > 0 && <span>🔁 {w.reps} reps</span>}
-                  {w.sets > 0 && <span>🔄 {w.sets} sets</span>}
-                  {w.distance > 0 && <span>🏃 {w.distance} miles</span>}
-                  {w.date && <span>📅 {new Date(w.date).toLocaleDateString()}</span>}
-                </div>
-                {w.notes && <p className="notes">📝 {w.notes}</p>}
+
+      {/* Active Workout Grid */}
+      {activeWorkout && (
+        <div className="workout-grid">
+          <div className="workout-column previous">
+            <h3>Last Performance</h3>
+            {activeWorkout.exercises.map((exercise, exIndex) => (
+              <div key={exIndex} className="exercise-column">
+                <h4>{exercise.name}</h4>
+                {exercise.sets.map((set, setIndex) => (
+                  <div key={setIndex} className="set-row">
+                    {Object.entries(set.values).map(([key, value]) => (
+                      <span key={key}>{key}: {value}</span>
+                    ))}
+                  </div>
+                ))}
               </div>
             ))}
           </div>
-        )}
+
+          <div className="workout-column current">
+            <h3>Current Workout</h3>
+            {activeWorkout.exercises.map((exercise, exIndex) => (
+              <div key={exIndex} className="exercise-column">
+                <h4>{exercise.name}</h4>
+                {exercise.sets.map((set, setIndex) => (
+                  <div
+                    key={setIndex}
+                    className={`set-row ${set.status}`}
+                    onClick={() => {
+                      const statuses = ['good', 'medium', 'bad'];
+                      const currentIndex = statuses.indexOf(set.status);
+                      const nextStatus = statuses[(currentIndex + 1) % 3];
+                      updateSetStatus(exIndex, setIndex, nextStatus);
+                    }}
+                  >
+                    <div className="status-indicator" />
+                    {exercise.measurementType === 'weights' && (
+                      <>
+                        <input type="number" placeholder="Weight" />
+                        <input type="number" placeholder="Reps" />
+                      </>
+                    )}
+                    {exercise.measurementType === 'cardio' && (
+                      <input type="number" placeholder="Distance (miles)" />
+                    )}
+                    {exercise.measurementType === 'timed' && (
+                      <input type="text" placeholder="Time (MM:SS)" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+            <button onClick={saveWorkoutProgress}>Finish Workout</button>
+          </div>
+        </div>
+      )}
+
+      {/* Workout Templates List */}
+      <div className="template-list">
+        <h2>Your Workout Templates</h2>
+        {workoutTemplates.map(template => (
+          <div key={template.id} className="template-card">
+            <h3>{template.name}</h3>
+            <button onClick={() => startWorkout(template)}>Start Workout</button>
+          </div>
+        ))}
       </div>
     </div>
   );
