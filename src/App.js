@@ -47,42 +47,59 @@ useEffect(() => {
   }
 }, [currentUser]); // Add currentUser as dependency
 
-  const fetchWorkouts = async () => {
-    if (!currentUser?.username) return;
+const fetchWorkouts = async () => {
+  if (!currentUser?.username) return;
+  
+  setLoading(true);
+  try {
+    const { tokens } = await fetchAuthSession();
+    const res = await axios.get(`${API_BASE}/`, {
+      headers: {
+        Authorization: `Bearer ${tokens?.idToken?.toString()}`
+      },
+      params: { userID: currentUser.username }
+    });
     
-    setLoading(true);
-    try {
-      const { tokens } = await fetchAuthSession();
-      const res = await axios.get(`${API_BASE}/`, {
-        headers: {
-          Authorization: `Bearer ${tokens?.idToken?.toString()}`
-        },
-        params: { userID: currentUser.username }
-      });
-      setWorkoutTemplates(res.data.templates || []);
-      setWorkoutHistory(res.data.history || []);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      alert("Failed to load workouts");
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log("API Response:", res.data); // Add this to verify structure
+    
+    // Temporary fix if response structure is different
+    const templates = res.data.templates || res.data.items || [];
+    setWorkoutTemplates(templates);
+    setWorkoutHistory(res.data.history || []);
+  } catch (err) {
+    console.error("Fetch error:", err.response?.data || err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const createWorkoutTemplate = async () => {
-    try {
-      const { tokens } = await fetchAuthSession();
-      await axios.post(`${API_BASE}/templates`, currentTemplate, {
-        headers: {
-          Authorization: `Bearer ${tokens?.idToken?.toString()}`
-        }
-      });
-      fetchWorkouts();
-      setCurrentTemplate({ name: '', exercises: [] });
-    } catch (err) {
-      console.error("Template creation failed:", err);
-    }
-  };
+const createWorkoutTemplate = async () => {
+  try {
+    const { tokens } = await fetchAuthSession();
+    const response = await axios.post(`${API_BASE}/templates`, {
+      ...currentTemplate,
+      userID: currentUser.username // Include user ID in payload
+    }, {
+      headers: {
+        Authorization: `Bearer ${tokens?.idToken?.toString()}`
+      }
+    });
+    
+    // Update state with the returned template
+    setWorkoutTemplates(prev => [...prev, response.data]);
+    setCurrentTemplate({ 
+      name: '', 
+      exercises: [{  // Reset to initial state
+        name: '',
+        measurementType: 'weights',
+        sets: 1,
+        previousStats: null
+      }]
+    });
+  } catch (err) {
+    console.error("Creation failed:", err.response?.data || err.message);
+  }
+};
 
   const startWorkout = (template) => {
     const previousWorkout = workoutHistory.find(w => w.templateId === template.id);
@@ -242,13 +259,22 @@ useEffect(() => {
       {/* Workout Templates List */}
       <div className="template-list">
         <h2>Your Workout Templates</h2>
-        {workoutTemplates.map(template => (
+        {loading ? (
+          <p>Loading templates...</p>
+        ) : (
+        workoutTemplates.map(template => (
           <div key={template.id} className="template-card">
             <h3>{template.name}</h3>
-            <button onClick={() => startWorkout(template)}>Start Workout</button>
-          </div>
-        ))}
+            <button onClick={() => startWorkout(template)}>
+          Start Workout
+        </button>
       </div>
+    ))
+  )}
+  {!loading && workoutTemplates.length === 0 && (
+    <p>No templates found. Create your first one!</p>
+  )}
+</div>
     </div>
   );
 }
