@@ -40,6 +40,13 @@ function App({ signOut, user }) {
     loadUser();
   }, []);
 
+  // Add this new useEffect to handle user updates
+useEffect(() => {
+  if (currentUser?.username) {
+    fetchWorkouts();
+  }
+}, [currentUser]); // Add currentUser as dependency
+
   const fetchWorkouts = async () => {
     if (!currentUser?.username) return;
     
