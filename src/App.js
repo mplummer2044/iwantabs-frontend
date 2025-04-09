@@ -46,7 +46,7 @@ function App({ signOut, user }) {
     setLoading(true);
     try {
       const { tokens } = await fetchAuthSession();
-      const res = await axios.get(`${API_BASE}/workouts`, {
+      const res = await axios.get(`${API_BASE}/`, {
         headers: {
           Authorization: `Bearer ${tokens?.idToken?.toString()}`
         },
@@ -102,7 +102,7 @@ function App({ signOut, user }) {
   const saveWorkoutProgress = async () => {
     try {
       const { tokens } = await fetchAuthSession();
-      await axios.post(`${API_BASE}/workouts`, activeWorkout, {
+      await axios.post(`${API_BASE}/`, activeWorkout, {
         headers: {
           Authorization: `Bearer ${tokens?.idToken?.toString()}`
         }
