@@ -101,21 +101,28 @@ const createWorkoutTemplate = async () => {
   }
 };
 
-  const startWorkout = (template) => {
-    const previousWorkout = workoutHistory.find(w => w.templateId === template.id);
-    setActiveWorkout({
-      ...template,
-      startTime: new Date().toISOString(),
-      exercises: template.exercises.map(exercise => ({
-        ...exercise,
-        sets: Array(exercise.sets).fill().map((_, i) => ({
-          setNumber: i + 1,
-          status: 'pending',
-          values: previousWorkout?.exercises[i]?.values || {}
-        }))
+const startWorkout = (template) => {
+  // Add fallback for missing exercises
+  const exercises = template.exercises || [];
+  
+  // Find previous workout using templateID instead of id
+  const previousWorkout = workoutHistory.find(w => w.templateID === template.templateID);
+  
+  setActiveWorkout({
+    ...template,
+    startTime: new Date().toISOString(),
+    exercises: exercises.map(exercise => ({
+      ...exercise,
+      // Add default sets if missing
+      sets: exercise.sets || 1,
+      sets: Array(exercise.sets || 1).fill().map((_, i) => ({
+        setNumber: i + 1,
+        status: 'pending',
+        values: previousWorkout?.exercises?.[i]?.values || {}
       }))
-    });
-  };
+    }))
+  });
+};
 
   const updateSetStatus = (exerciseIndex, setIndex, status) => {
     const updatedExercises = [...activeWorkout.exercises];
@@ -256,24 +263,17 @@ const createWorkoutTemplate = async () => {
         </div>
       )}
 
-      {/* Workout Templates List */}
-      <div className="template-list">
-        <h2>Your Workout Templates</h2>
-        {loading ? (
-          <p>Loading templates...</p>
-        ) : (
-        workoutTemplates.map(template => (
-          <div key={template.id} className="template-card">
-            <h3>{template.name}</h3>
-            <button onClick={() => startWorkout(template)}>
-          Start Workout
-        </button>
-      </div>
-    ))
-  )}
-  {!loading && workoutTemplates.length === 0 && (
-    <p>No templates found. Create your first one!</p>
-  )}
+<div className="template-list">
+  <h2>Your Workout Templates</h2>
+  {workoutTemplates.map(template => (
+    <div key={template.templateID} className="template-card">
+      <h3>{template.templateName || "Unnamed Template"}</h3>
+      <button onClick={() => startWorkout(template)}>
+        Start Workout
+      </button>
+      <p>Exercises: {(template.exercises || []).length}</p>
+    </div>
+  ))}
 </div>
     </div>
   );
