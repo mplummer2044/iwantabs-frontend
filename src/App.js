@@ -300,11 +300,11 @@ function App({ signOut, user }) {
       </div>
 
       {/* Template List Section */}
+      // In your template display (frontend)
       <div className="template-list">
-        <h2>Your Workout Templates</h2>
         {workoutTemplates.map(template => (
           <div key={template.templateID} className="template-card">
-            <h3>{template.name || "Unnamed Template"}</h3>
+            <h3>{template.name || "Unnamed Template"}</h3> {/* Use 'name' */}
             <button onClick={() => startWorkout(template)}>
               Start Workout
             </button>
