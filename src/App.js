@@ -53,20 +53,14 @@ const fetchWorkouts = async () => {
   setLoading(true);
   try {
     const { tokens } = await fetchAuthSession();
-    const res = await axios.get(`${API_BASE}/templates`, { // Changed endpoint
+    const res = await axios.get(`${API_BASE}/templates`, {
       headers: {
         Authorization: `Bearer ${tokens?.idToken?.toString()}`
       }
     });
     
-    // Directly use res.data array
-    setWorkoutTemplates(res.data);
-  } catch (err) {
-    console.error("Fetch error:", err.response?.data || err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    // Set both templates and history from the response
+    setWorkoutTemplates(res.data.templates || res.data.items || []);
     setWorkoutHistory(res.data.history || []);
   } catch (err) {
     console.error("Fetch error:", err.response?.data || err.message);
@@ -74,6 +68,7 @@ const fetchWorkouts = async () => {
     setLoading(false);
   }
 };
+
 
 const createWorkoutTemplate = async () => {
   try {
@@ -110,8 +105,8 @@ const startWorkout = (template) => {
     userID: currentUser.username,
     workoutID: workoutId,
     isTemplate: false,
-    templateID: template.workoutID,  // <-- Use template's ID
-    exercises: template.exerciseList.map(ex => ({
+    templateID: template.templateID,  
+    exercises: template.exercises.map(ex => ({
       ...ex,
       actualReps: null,
       actualWeight: null
@@ -267,7 +262,7 @@ const startWorkout = (template) => {
     {workout.templateID && (
       <small>
         From template: {
-          workoutTemplates.find(t => t.workoutID === workout.templateID)?.templateName
+          workoutTemplates.find(t => t.templateID === workout.templateID)
         }
       </small>
     )}
