@@ -98,12 +98,21 @@ const createWorkoutTemplate = async () => {
   }
 };
 
-// In startWorkout function, change exerciseList to exercises:
 const startWorkout = (template) => {
+  const workoutId = `log_${Date.now()}`;
+  
   setActiveWorkout({
-    // ...
-    exercises: template.exercises.map(ex => ({ // Changed from exerciseList
+    userID: currentUser.username,
+    workoutID: workoutId,
+    isTemplate: false,
+    templateID: template.templateID, // Ensure this uses templateID
+    exercises: (template.exercises || []).map(ex => ({ // Add safety check
       ...ex,
+      sets: Array(ex.sets || 1).fill().map(() => ({ // Ensure sets array exists
+        reps: null,
+        weight: null,
+        status: 'pending'
+      })),
       actualReps: null,
       actualWeight: null
     }))
@@ -113,7 +122,11 @@ const startWorkout = (template) => {
 // In template display:
 <div className="template-list">
   {workoutTemplates.map(template => (
-    <div key={template.templateID}>
+    <div key={template.templateID} className="template-card">
+      <h3>{template.name || "Unnamed Template"}</h3> {/* Changed from templateName */}
+      <button onClick={() => startWorkout(template)}>
+        Start Workout
+      </button>
       <p>Exercises: {(template.exercises || []).length}</p>
     </div>
   ))}
