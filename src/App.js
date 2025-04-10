@@ -55,7 +55,7 @@ const fetchWorkouts = async () => {
     const { tokens } = await fetchAuthSession();
     const res = await axios.get(`${API_BASE}/templates`, {
       headers: {
-        Authorization: `Bearer ${tokens?.idToken?.toString()}`
+        Authorization: tokens?.idToken?.toString()
       }
     });
     
@@ -267,7 +267,7 @@ const startWorkout = (template) => {
     {workout.templateID && (
       <small>
         From template: {
-          workoutTemplates.find(t => t.templateID === workout.templateID)?.templateName
+          workoutTemplates.find(t => t.templateID === workout.templateID)?.name
         }
       </small>
     )}
