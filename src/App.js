@@ -99,23 +99,25 @@ const createWorkoutTemplate = async () => {
 };
 
 const startWorkout = (template) => {
-  const workoutId = `log_${Date.now()}`;
-  
   setActiveWorkout({
     userID: currentUser.username,
-    workoutID: workoutId,
+    workoutID: `log_${Date.now()}`,
     isTemplate: false,
-    templateID: template.templateID, // Ensure this uses templateID
-    exercises: (template.exercises || []).map(ex => ({ // Add safety check
+    templateID: template.templateID,
+    exercises: (template.exercises || []).map(ex => ({
       ...ex,
-      sets: Array(ex.sets || 1).fill().map(() => ({ // Ensure sets array exists
-        reps: null,
-        weight: null,
+      sets: Array(ex.sets || 1).fill().map(() => ({
+        values: {  // Wrap in values object
+          reps: null,
+          weight: null,
+          distance: null,
+          time: null
+        },
         status: 'pending'
       })),
-      actualReps: null,
-      actualWeight: null
-    }))
+      previousStats: ex.previousStats || null
+    })),
+    createdAt: new Date().toISOString()
   });
 };
 
@@ -215,23 +217,19 @@ const startWorkout = (template) => {
       </div>
 
       {/* Active Workout Grid */}
-      {activeWorkout && (
-        <div className="workout-grid">
-          <div className="workout-column previous">
-            <h3>Last Performance</h3>
-            {activeWorkout.exercises.map((exercise, exIndex) => (
-              <div key={exIndex} className="exercise-column">
-                <h4>{exercise.name}</h4>
-                {exercise.sets.map((set, setIndex) => (
-                  <div key={setIndex} className="set-row">
-                    {Object.entries(set.values).map(([key, value]) => (
-                      <span key={key}>{key}: {value}</span>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+      {activeWorkout?.exercises?.map((exercise, exIndex) => (
+        <div key={exIndex} className="exercise-column">
+          <h4>{exercise.name}</h4>
+          {exercise.sets?.map((set, setIndex) => (
+            <div key={setIndex} className="set-row">
+              {/* Check for set.values before mapping */}
+              {set.values && Object.entries(set.values).map(([key, value]) => (
+                <span key={key}>{key}: {value ?? 'N/A'}</span>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
 
           
 
@@ -275,15 +273,20 @@ const startWorkout = (template) => {
 
 {workoutHistory.map(workout => (
   <div key={workout.workoutID}>
-    <h4>{new Date(workout.date).toLocaleDateString()}</h4>
-    <p>Exercise: {workout.exerciseName}</p>
-    {workout.templateID && (
-      <small>
-        From template: {
-          workoutTemplates.find(t => t.templateID === workout.templateID)?.name
-        }
-      </small>
-    )}
+    <h4>{new Date(workout.createdAt).toLocaleDateString()}</h4>
+    {workout.exercises?.map((exercise, exIndex) => (
+      <div key={exIndex} className="exercise-history">
+        <h5>{exercise.name}</h5>
+        {exercise.sets?.map((set, setIndex) => (
+          <div key={setIndex} className="set-history">
+            {/* Add null checks for set.values */}
+            {set.values && Object.entries(set.values).map(([key, value]) => (
+              <span key={key}>{key}: {value ?? 'N/A'}</span>
+            ))}
+          </div>
+        ))}
+      </div>
+    ))}
   </div>
 ))}
 
