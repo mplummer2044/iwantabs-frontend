@@ -53,18 +53,20 @@ const fetchWorkouts = async () => {
   setLoading(true);
   try {
     const { tokens } = await fetchAuthSession();
-    const res = await axios.get(`${API_BASE}/`, {
+    const res = await axios.get(`${API_BASE}/templates`, { // Changed endpoint
       headers: {
         Authorization: `Bearer ${tokens?.idToken?.toString()}`
-      },
-      params: { userID: currentUser.username }
+      }
     });
     
-    console.log("API Response:", res.data); // Add this to verify structure
-    
-    // Temporary fix if response structure is different
-    const templates = res.data.templates || res.data.items || [];
-    setWorkoutTemplates(templates);
+    // Directly use res.data array
+    setWorkoutTemplates(res.data);
+  } catch (err) {
+    console.error("Fetch error:", err.response?.data || err.message);
+  } finally {
+    setLoading(false);
+  }
+};
     setWorkoutHistory(res.data.history || []);
   } catch (err) {
     console.error("Fetch error:", err.response?.data || err.message);
