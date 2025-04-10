@@ -8,8 +8,13 @@ import './App.css';
 const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
 function App({ signOut, user }) {
+  // State Management Section
+  // -------------------------
+  // Track workout templates and active workout session
   const [workoutTemplates, setWorkoutTemplates] = useState([]);
   const [activeWorkout, setActiveWorkout] = useState(null);
+  
+  // Manage template creation form state
   const [currentTemplate, setCurrentTemplate] = useState({
     name: '',
     exercises: [{
@@ -20,10 +25,13 @@ function App({ signOut, user }) {
     }]
   });
   
+  // Track workout history and loading states
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
+  // User Authentication & Data Loading Section
+  // ------------------------------------------
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -40,99 +48,88 @@ function App({ signOut, user }) {
     loadUser();
   }, []);
 
-  // Add this new useEffect to handle user updates
-useEffect(() => {
-  if (currentUser?.username) {
-    fetchWorkouts();
-  }
-}, [currentUser]); // Add currentUser as dependency
+  // Template and Workout Data Fetching
+  // ----------------------------------
+  useEffect(() => {
+    if (currentUser?.username) {
+      fetchWorkouts();
+    }
+  }, [currentUser]);
 
-const fetchWorkouts = async () => {
-  if (!currentUser?.username) return;
-  
-  setLoading(true);
-  try {
-    const { tokens } = await fetchAuthSession();
-    const res = await axios.get(`${API_BASE}/templates`, {
-      headers: {
-        Authorization: tokens?.idToken?.toString()
-      }
-    });
+  const fetchWorkouts = async () => {
+    if (!currentUser?.username) return;
     
-    // Set both templates and history from the response
-    setWorkoutTemplates(res.data.templates || res.data.items || []);
-    setWorkoutHistory(res.data.history || []);
-  } catch (err) {
-    console.error("Fetch error:", err.response?.data || err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const { tokens } = await fetchAuthSession();
+      const res = await axios.get(`${API_BASE}/templates`, {
+        headers: {
+          Authorization: tokens?.idToken?.toString()
+        }
+      });
+      
+      setWorkoutTemplates(res.data.templates || []);
+      setWorkoutHistory(res.data.history || []);
+    } catch (err) {
+      console.error("Fetch error:", err.response?.data || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Template Creation Logic
+  // -----------------------
+  const createWorkoutTemplate = async () => {
+    try {
+      const { tokens } = await fetchAuthSession();
+      const response = await axios.post(`${API_BASE}/templates`, {
+        ...currentTemplate,
+        userID: currentUser.username
+      }, {
+        headers: {
+          Authorization: `Bearer ${tokens?.idToken?.toString()}`
+        }
+      });
+      
+      setWorkoutTemplates(prev => [...prev, response.data]);
+      setCurrentTemplate({ 
+        name: '', 
+        exercises: [{
+          name: '',
+          measurementType: 'weights',
+          sets: 1,
+          previousStats: null
+        }]
+      });
+    } catch (err) {
+      console.error("Creation failed:", err.response?.data || err.message);
+    }
+  };
 
-const createWorkoutTemplate = async () => {
-  try {
-    const { tokens } = await fetchAuthSession();
-    const response = await axios.post(`${API_BASE}/templates`, {
-      ...currentTemplate,
-      userID: currentUser.username // Include user ID in payload
-    }, {
-      headers: {
-        Authorization: `Bearer ${tokens?.idToken?.toString()}`
-      }
-    });
-    
-    // Update state with the returned template
-    setWorkoutTemplates(prev => [...prev, response.data]);
-    setCurrentTemplate({ 
-      name: '', 
-      exercises: [{  // Reset to initial state
-        name: '',
-        measurementType: 'weights',
-        sets: 1,
-        previousStats: null
-      }]
-    });
-  } catch (err) {
-    console.error("Creation failed:", err.response?.data || err.message);
-  }
-};
-
-const startWorkout = (template) => {
-  setActiveWorkout({
-    userID: currentUser.username,
-    workoutID: `log_${Date.now()}`,
-    isTemplate: false,
-    templateID: template.templateID,
-    exercises: (template.exercises || []).map(ex => ({
-      ...ex,
-      sets: Array(ex.sets || 1).fill().map(() => ({
-        values: {  // Wrap in values object
-          reps: null,
-          weight: null,
-          distance: null,
-          time: null
-        },
-        status: 'pending'
+  // Workout Session Management
+  // --------------------------
+  const startWorkout = (template) => {
+    setActiveWorkout({
+      userID: currentUser.username,
+      workoutID: `log_${Date.now()}`,
+      isTemplate: false,
+      templateID: template.templateID,
+      exercises: (template.exercises || []).map(ex => ({
+        ...ex,
+        sets: Array(ex.sets || 1).fill().map(() => ({
+          values: {
+            reps: null,
+            weight: null,
+            distance: null,
+            time: null
+          },
+          status: 'pending'
+        })),
+        previousStats: ex.previousStats || null
       })),
-      previousStats: ex.previousStats || null
-    })),
-    createdAt: new Date().toISOString()
-  });
-};
-
-// In template display:
-<div className="template-list">
-  {workoutTemplates.map(template => (
-    <div key={template.templateID} className="template-card">
-      <h3>{template.name || "Unnamed Template"}</h3> {/* Changed from templateName */}
-      <button onClick={() => startWorkout(template)}>
-        Start Workout
-      </button>
-      <p>Exercises: {(template.exercises || []).length}</p>
-    </div>
-  ))}
-</div>
+      createdAt: new Date().toISOString()
+    });
+  };
 
   const updateSetStatus = (exerciseIndex, setIndex, status) => {
     const updatedExercises = [...activeWorkout.exercises];
@@ -155,14 +152,17 @@ const startWorkout = (template) => {
     }
   };
 
+  // UI Components Section
+  // ----------------------
   return (
     <div className="app">
+      {/* Header Section */}
       <header className="app-header">
         <h1>I WANT ABS 🏋️</h1>
         {user && <button onClick={signOut} className="sign-out-button">Sign Out</button>}
       </header>
 
-      {/* Workout Template Creation */}
+      {/* Template Creation Interface */}
       <div className="workout-creator">
         <h2>Create Workout Template</h2>
         <input
@@ -208,7 +208,11 @@ const startWorkout = (template) => {
         
         <button onClick={() => setCurrentTemplate({
           ...currentTemplate,
-          exercises: [...currentTemplate.exercises, { name: '', measurementType: 'weights' }]
+          exercises: [...currentTemplate.exercises, { 
+            name: '', 
+            measurementType: 'weights',
+            sets: 1
+          }]
         })}>
           Add Exercise
         </button>
@@ -216,29 +220,31 @@ const startWorkout = (template) => {
         <button onClick={createWorkoutTemplate}>Save Template</button>
       </div>
 
-      {/* Active Workout Grid */}
-      {activeWorkout?.exercises?.map((exercise, exIndex) => (
-        <div key={exIndex} className="exercise-column">
-          <h4>{exercise.name}</h4>
-          {exercise.sets?.map((set, setIndex) => (
-            <div key={setIndex} className="set-row">
-              {/* Check for set.values before mapping */}
-              {set.values && Object.entries(set.values).map(([key, value]) => (
-                <span key={key}>{key}: {value ?? 'N/A'}</span>
-              ))}
-            </div>
-          ))}
-        </div>
-      ))}
-
-          
+      {/* Active Workout Interface */}
+      {activeWorkout && (
+        <div className="workout-grid">
+          <div className="workout-column previous">
+            <h3>Last Performance</h3>
+            {activeWorkout.exercises?.map((exercise, exIndex) => (
+              <div key={exIndex} className="exercise-column">
+                <h4>{exercise.name}</h4>
+                {exercise.sets?.map((set, setIndex) => (
+                  <div key={setIndex} className="set-row">
+                    {set.values && Object.entries(set.values).map(([key, value]) => (
+                      <span key={key}>{key}: {value ?? 'N/A'}</span>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
 
           <div className="workout-column current">
             <h3>Current Workout</h3>
-            {activeWorkout.exercises.map((exercise, exIndex) => (
+            {activeWorkout.exercises?.map((exercise, exIndex) => (
               <div key={exIndex} className="exercise-column">
                 <h4>{exercise.name}</h4>
-                {exercise.sets.map((set, setIndex) => (
+                {exercise.sets?.map((set, setIndex) => (
                   <div
                     key={setIndex}
                     className={`set-row ${set.status}`}
@@ -271,37 +277,41 @@ const startWorkout = (template) => {
         </div>
       )}
 
-{workoutHistory.map(workout => (
-  <div key={workout.workoutID}>
-    <h4>{new Date(workout.createdAt).toLocaleDateString()}</h4>
-    {workout.exercises?.map((exercise, exIndex) => (
-      <div key={exIndex} className="exercise-history">
-        <h5>{exercise.name}</h5>
-        {exercise.sets?.map((set, setIndex) => (
-          <div key={setIndex} className="set-history">
-            {/* Add null checks for set.values */}
-            {set.values && Object.entries(set.values).map(([key, value]) => (
-              <span key={key}>{key}: {value ?? 'N/A'}</span>
+      {/* Workout History Section */}
+      <div className="workout-history">
+        <h2>Workout History</h2>
+        {workoutHistory.map(workout => (
+          <div key={workout.workoutID} className="workout-log">
+            <h4>{new Date(workout.createdAt).toLocaleDateString()}</h4>
+            {workout.exercises?.map((exercise, exIndex) => (
+              <div key={exIndex} className="exercise-history">
+                <h5>{exercise.name}</h5>
+                {exercise.sets?.map((set, setIndex) => (
+                  <div key={setIndex} className="set-history">
+                    {set.values && Object.entries(set.values).map(([key, value]) => (
+                      <span key={key}>{key}: {value ?? 'N/A'}</span>
+                    ))}
+                  </div>
+                ))}
+              </div>
             ))}
           </div>
         ))}
       </div>
-    ))}
-  </div>
-))}
 
-<div className="template-list">
-  <h2>Your Workout Templates</h2>
-  {workoutTemplates.map(template => (
-    <div key={template.templateID} className="template-card">
-      <h3>{template.templateName || "Unnamed Template"}</h3>
-      <button onClick={() => startWorkout(template)}>
-        Start Workout
-      </button>
-      <p>Exercises: {(template.exercises || []).length}</p>
-    </div>
-  ))}
-</div>
+      {/* Template List Section */}
+      <div className="template-list">
+        <h2>Your Workout Templates</h2>
+        {workoutTemplates.map(template => (
+          <div key={template.templateID} className="template-card">
+            <h3>{template.name || "Unnamed Template"}</h3>
+            <button onClick={() => startWorkout(template)}>
+              Start Workout
+            </button>
+            <p>Exercises: {(template.exercises || []).length}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
