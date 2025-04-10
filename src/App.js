@@ -102,24 +102,17 @@ const createWorkoutTemplate = async () => {
 };
 
 const startWorkout = (template) => {
-  // Add fallback for missing exercises
-  const exercises = template.exercises || [];
-  
-  // Find previous workout using templateID instead of id
-  const previousWorkout = workoutHistory.find(w => w.templateID === template.templateID);
+  const workoutId = `log_${Date.now()}`;
   
   setActiveWorkout({
-    ...template,
-    startTime: new Date().toISOString(),
-    exercises: exercises.map(exercise => ({
-      ...exercise,
-      // Add default sets if missing
-      sets: exercise.sets || 1,
-      sets: Array(exercise.sets || 1).fill().map((_, i) => ({
-        setNumber: i + 1,
-        status: 'pending',
-        values: previousWorkout?.exercises?.[i]?.values || {}
-      }))
+    userID: currentUser.username,
+    workoutID: workoutId,
+    isTemplate: false,
+    templateID: template.workoutID,  // <-- Use template's ID
+    exercises: template.exerciseList.map(ex => ({
+      ...ex,
+      actualReps: null,
+      actualWeight: null
     }))
   });
 };
@@ -225,6 +218,8 @@ const startWorkout = (template) => {
             ))}
           </div>
 
+          
+
           <div className="workout-column current">
             <h3>Current Workout</h3>
             {activeWorkout.exercises.map((exercise, exIndex) => (
@@ -262,6 +257,20 @@ const startWorkout = (template) => {
           </div>
         </div>
       )}
+
+{workoutHistory.map(workout => (
+  <div key={workout.workoutID}>
+    <h4>{new Date(workout.date).toLocaleDateString()}</h4>
+    <p>Exercise: {workout.exerciseName}</p>
+    {workout.templateID && (
+      <small>
+        From template: {
+          workoutTemplates.find(t => t.workoutID === workout.templateID)?.templateName
+        }
+      </small>
+    )}
+  </div>
+))}
 
 <div className="template-list">
   <h2>Your Workout Templates</h2>
