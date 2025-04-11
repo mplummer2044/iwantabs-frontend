@@ -140,15 +140,45 @@ function App({ signOut, user }) {
   const saveWorkoutProgress = async () => {
     try {
       const { tokens } = await fetchAuthSession();
-      await axios.post(`${API_BASE}/`, activeWorkout, {
+      
+      // Transform the workout data to match your DynamoDB schema
+      const workoutData = {
+        userID: activeWorkout.userID,
+        workoutID: activeWorkout.workoutID,
+        createdAt: new Date().toISOString(),
+        exerciseList: activeWorkout.exercises.map(exercise => ({
+          name: exercise.name,
+          measurementType: exercise.measurementType,
+          sets: exercise.sets.map(set => ({
+            values: {
+              reps: set.values.reps || null,
+              weight: set.values.weight || null,
+              distance: set.values.distance || null,
+              time: set.values.time || null
+            },
+            status: set.status
+          })),
+          previousStats: exercise.previousStats
+        })),
+        templateID: activeWorkout.templateID,
+        isTemplate: false
+      };
+  
+      // Use your existing CreateWorkout endpoint
+      const response = await axios.post(API_BASE, workoutData, {
         headers: {
           Authorization: `Bearer ${tokens?.idToken?.toString()}`
         }
       });
+  
+      console.log('Workout saved:', response.data);
       setActiveWorkout(null);
-      fetchWorkouts();
+      fetchWorkouts(); // Refresh data
     } catch (err) {
-      console.error("Save failed:", err);
+      console.error("Save failed:", {
+        error: err.response?.data || err.message,
+        requestData: workoutData
+      });
     }
   };
 
