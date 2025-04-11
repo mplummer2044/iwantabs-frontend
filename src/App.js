@@ -32,17 +32,23 @@ function App({ signOut, user }) {
 
   // User Authentication & Data Loading Section
   // ------------------------------------------
+// In your user loading useEffect
   useEffect(() => {
     const loadUser = async () => {
       try {
         const { tokens } = await fetchAuthSession();
+        if (!tokens?.idToken?.payload?.sub) {
+          throw new Error("No user ID in token");
+        }
+        
         setCurrentUser({
-          username: tokens?.idToken?.payload.sub,
-          email: tokens?.idToken?.payload.email
+          username: tokens.idToken.payload.sub,
+          email: tokens.idToken.payload.email
         });
         fetchWorkouts();
       } catch (err) {
         console.log("User not signed in", err);
+        // Redirect to login if needed
       }
     };
     loadUser();
@@ -109,9 +115,18 @@ function App({ signOut, user }) {
   // Workout Session Management
   // --------------------------
   const startWorkout = (template) => {
+    if (!currentUser?.username) {
+      console.error("No user logged in");
+      return;
+    }
+  
     setActiveWorkout({
-      // ... other fields
-      exercises: (template.exercises || []).map(ex => ({
+      userID: currentUser.username, // Must come from authenticated user
+      workoutID: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, // More unique ID
+      isTemplate: false,
+      templateID: template?.templateID || '', // Ensure templateID exists
+      createdAt: new Date().toISOString(),
+      exercises: (template?.exercises || []).map(ex => ({
         ...ex,
         sets: Array(ex.sets || 1).fill().map(() => ({
           values: {
@@ -123,7 +138,7 @@ function App({ signOut, user }) {
           status: 'pending'
         })),
         previousStats: ex.previousStats || null
-      })),
+      }))
     });
   };
 
@@ -135,14 +150,18 @@ function App({ signOut, user }) {
 
   const saveWorkoutProgress = async () => {
     try {
+      // Validate required fields before sending
+      if (!activeWorkout?.userID || !activeWorkout?.workoutID) {
+        throw new Error("Missing required workout data");
+      }
+  
       const { tokens } = await fetchAuthSession();
       
-      // Ensure exerciseList is always present
       const workoutData = {
         userID: activeWorkout.userID,
         workoutID: activeWorkout.workoutID,
-        createdAt: new Date().toISOString(),
-        templateID: activeWorkout.templateID,
+        createdAt: activeWorkout.createdAt,
+        templateID: activeWorkout.templateID || '', // Ensure string value
         isTemplate: false,
         exerciseList: activeWorkout.exercises.map(exercise => ({
           name: exercise.name,
@@ -157,10 +176,10 @@ function App({ signOut, user }) {
             status: set.status
           })),
           previousStats: exercise.previousStats || null
-        })) || []  // Fallback to empty array
+        }))
       };
   
-      console.log('Sending workout data:', workoutData);
+      console.log('Validated workout data:', workoutData);
       
       const response = await axios.post(API_BASE, workoutData, {
         headers: {
@@ -173,9 +192,11 @@ function App({ signOut, user }) {
       fetchWorkouts();
     } catch (err) {
       console.error("Save failed:", {
-        error: err.response?.data || err.message,
-        request: err.config
+        error: err.message,
+        response: err.response?.data,
+        stack: err.stack
       });
+      alert(`Failed to save workout: ${err.message}`);
     }
   };
 
