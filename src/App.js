@@ -141,28 +141,56 @@ function App({ signOut, user }) {
     try {
       const { tokens } = await fetchAuthSession();
       
-      // Transform the workout data to match your DynamoDB schema
+      // Convert exercise data to DynamoDB-compatible format
       const workoutData = {
         userID: activeWorkout.userID,
         workoutID: activeWorkout.workoutID,
         createdAt: new Date().toISOString(),
-        exerciseList: activeWorkout.exercises.map(exercise => ({
-          name: exercise.name,
-          measurementType: exercise.measurementType,
-          sets: exercise.sets.map(set => ({
-            values: {
-              reps: set.values.reps || null,
-              weight: set.values.weight || null,
-              distance: set.values.distance || null,
-              time: set.values.time || null
-            },
-            status: set.status
-          })),
-          previousStats: exercise.previousStats
-        })),
         templateID: activeWorkout.templateID,
-        isTemplate: false
+        isTemplate: false,
+        exerciseList: activeWorkout.exercises.map(exercise => ({
+          M: {
+            name: { S: exercise.name },
+            measurementType: { S: exercise.measurementType },
+            sets: { 
+              L: exercise.sets.map(set => ({
+                M: {
+                  values: {
+                    M: Object.entries(set.values).reduce((acc, [key, value]) => ({
+                      ...acc,
+                      [key]: { N: value.toString() }
+                    }), {})
+                  },
+                  status: { S: set.status }
+                }
+              }))
+            },
+            previousStats: exercise.previousStats ? {
+              M: Object.entries(exercise.previousStats).reduce((acc, [key, value]) => ({
+                ...acc,
+                [key]: { N: value.toString() }
+              }), {})
+            } : { NULL: true }
+          }
+        }))
       };
+  
+      console.log('Saving workout:', JSON.stringify(workoutData, null, 2));
+      
+      const response = await axios.post(API_BASE, workoutData, {
+        headers: {
+          Authorization: `Bearer ${tokens?.idToken?.toString()}`
+        }
+      });
+  
+      console.log('Save response:', response.data);
+      setActiveWorkout(null);
+      fetchWorkouts();
+    } catch (err) {
+      console.error("Save failed:", {
+        error: err.response?.data || err.message,
+        config: err.config
+      });
   
       // Use your existing CreateWorkout endpoint
       const response = await axios.post(API_BASE, workoutData, {
