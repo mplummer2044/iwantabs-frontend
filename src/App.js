@@ -137,7 +137,7 @@ function App({ signOut, user }) {
     try {
       const { tokens } = await fetchAuthSession();
       
-      // Convert exercise data to DynamoDB-compatible format
+      // Ensure exerciseList is always present
       const workoutData = {
         userID: activeWorkout.userID,
         workoutID: activeWorkout.workoutID,
@@ -148,14 +148,19 @@ function App({ signOut, user }) {
           name: exercise.name,
           measurementType: exercise.measurementType,
           sets: exercise.sets.map(set => ({
-            values: set.values,
+            values: {
+              weight: set.values.weight ? Number(set.values.weight) : null,
+              reps: set.values.reps ? Number(set.values.reps) : null,
+              distance: set.values.distance ? Number(set.values.distance) : null,
+              time: set.values.time || null
+            },
             status: set.status
           })),
-          previousStats: exercise.previousStats
-        }))
+          previousStats: exercise.previousStats || null
+        })) || []  // Fallback to empty array
       };
   
-      console.log('Saving workout:', workoutData);
+      console.log('Sending workout data:', workoutData);
       
       const response = await axios.post(API_BASE, workoutData, {
         headers: {
@@ -169,7 +174,7 @@ function App({ signOut, user }) {
     } catch (err) {
       console.error("Save failed:", {
         error: err.response?.data || err.message,
-        config: err.config
+        request: err.config
       });
     }
   };
