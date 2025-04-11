@@ -74,8 +74,13 @@ function App({ signOut, user }) {
         }
       });
       
+      // Sort history by date descending
+      const sortedHistory = (res.data.history || []).sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
+  
       setWorkoutTemplates(res.data.templates || []);
-      setWorkoutHistory(res.data.history || []);
+      setWorkoutHistory(sortedHistory);
     } catch (err) {
       console.error("Fetch error:", err.response?.data || err.message);
     } finally {
@@ -115,30 +120,37 @@ function App({ signOut, user }) {
   // Workout Session Management
   // --------------------------
   const startWorkout = (template) => {
-    if (!currentUser?.username) {
-      console.error("No user logged in");
-      return;
-    }
+    // Find previous workouts with this template
+    const previousWorkouts = workoutHistory.filter(w => 
+      w.templateID === template.templateID
+    ).sort((a, b) => 
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  
+    const lastPerformance = previousWorkouts[0] || null;
   
     setActiveWorkout({
-      userID: currentUser.username, // Must come from authenticated user
-      workoutID: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, // More unique ID
+      userID: currentUser.username,
+      workoutID: `log_${Date.now()}`,
       isTemplate: false,
-      templateID: template?.templateID || '', // Ensure templateID exists
-      createdAt: new Date().toISOString(),
-      exercises: (template?.exercises || []).map(ex => ({
+      templateID: template.templateID,
+      exercises: (template.exercises || []).map(ex => ({
         ...ex,
         sets: Array(ex.sets || 1).fill().map(() => ({
           values: {
-            weight: null,
             reps: null,
+            weight: null,
             distance: null,
             time: null
           },
           status: 'pending'
         })),
-        previousStats: ex.previousStats || null
-      }))
+        previousStats: lastPerformance?.exercises?.find(e => 
+          e.name === ex.name
+        )?.sets?.[0]?.values || null
+      })),
+      createdAt: new Date().toISOString(),
+      lastPerformance // Store the previous workout data
     });
   };
 
@@ -271,22 +283,34 @@ function App({ signOut, user }) {
       {/* Active Workout Interface */}
       {activeWorkout && (
         <div className="workout-grid">
+          {/* Last Performance Column */}
           <div className="workout-column previous">
             <h3>Last Performance</h3>
-            {activeWorkout.exercises?.map((exercise, exIndex) => (
-              <div key={exIndex} className="exercise-column">
-                <h4>{exercise.name}</h4>
-                {exercise.sets?.map((set, setIndex) => (
-                  <div key={setIndex} className="set-row">
-                    {set.values && Object.entries(set.values).map(([key, value]) => (
-                      <span key={key}>{key}: {value ?? 'N/A'}</span>
+            {activeWorkout.lastPerformance && (
+              <>
+                <h4 className="workout-date">
+                  {new Date(activeWorkout.lastPerformance.createdAt).toLocaleDateString()}
+                </h4>
+                {activeWorkout.lastPerformance.exerciseList?.map((exercise, exIndex) => (
+                  <div key={exIndex} className="exercise-column">
+                    <h4>{exercise.name}</h4>
+                    {exercise.sets?.map((set, setIndex) => (
+                      <div key={setIndex} className="set-row">
+                        {Object.entries(set.values || {}).map(([key, value]) => (
+                          <span key={key}>{key}: {value ?? 'N/A'}</span>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 ))}
-              </div>
-            ))}
+              </>
+            )}
+            {!activeWorkout.lastPerformance && (
+              <p>No previous performance found</p>
+            )}
           </div>
 
+          {/* Current Workout Column */}
           <div className="workout-column current">
             <h3>Current Workout</h3>
             {activeWorkout.exercises?.map((exercise, exIndex) => (
@@ -369,7 +393,16 @@ function App({ signOut, user }) {
         <h2>Workout History</h2>
         {workoutHistory.map(workout => (
           <div key={workout.workoutID} className="workout-log">
-            <h4>{new Date(workout.createdAt).toLocaleDateString()}</h4>
+            <div className="workout-header">
+            <h3>{new Date(workout.createdAt).toLocaleDateString()}</h3>
+            {workout.templateID && (
+              <small>
+                From template: {
+                  workoutTemplates.find(t => t.templateID === workout.templateID)?.name
+                }
+              </small>
+            )}
+          </div>
             {workout.exercises?.map((exercise, exIndex) => (
               <div key={exIndex} className="exercise-history">
                 <h5>{exercise.name}</h5>
