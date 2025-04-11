@@ -304,7 +304,7 @@ function App({ signOut, user }) {
         <h2>Your Workout Templates</h2>
         {workoutTemplates.map(template => (
           <div key={template.templateID} className="template-card">
-            {/* Fix: Access template.name directly with fallback */}
+            {/* Use template.name with safety checks */}
             <h3>{template?.name || "Unnamed Template"}</h3>
             <button onClick={() => startWorkout(template)}>
               Start Workout
