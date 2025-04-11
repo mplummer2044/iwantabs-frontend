@@ -149,50 +149,18 @@ function App({ signOut, user }) {
         templateID: activeWorkout.templateID,
         isTemplate: false,
         exerciseList: activeWorkout.exercises.map(exercise => ({
-          M: {
-            name: { S: exercise.name },
-            measurementType: { S: exercise.measurementType },
-            sets: { 
-              L: exercise.sets.map(set => ({
-                M: {
-                  values: {
-                    M: Object.entries(set.values).reduce((acc, [key, value]) => ({
-                      ...acc,
-                      [key]: { N: value.toString() }
-                    }), {})
-                  },
-                  status: { S: set.status }
-                }
-              }))
-            },
-            previousStats: exercise.previousStats ? {
-              M: Object.entries(exercise.previousStats).reduce((acc, [key, value]) => ({
-                ...acc,
-                [key]: { N: value.toString() }
-              }), {})
-            } : { NULL: true }
-          }
+          name: exercise.name,
+          measurementType: exercise.measurementType,
+          sets: exercise.sets.map(set => ({
+            values: set.values,
+            status: set.status
+          })),
+          previousStats: exercise.previousStats
         }))
       };
   
-      console.log('Saving workout:', JSON.stringify(workoutData, null, 2));
+      console.log('Saving workout:', workoutData);
       
-      const response = await axios.post(API_BASE, workoutData, {
-        headers: {
-          Authorization: `Bearer ${tokens?.idToken?.toString()}`
-        }
-      });
-  
-      console.log('Save response:', response.data);
-      setActiveWorkout(null);
-      fetchWorkouts();
-    } catch (err) {
-      console.error("Save failed:", {
-        error: err.response?.data || err.message,
-        config: err.config
-      });
-  
-      // Use your existing CreateWorkout endpoint
       const response = await axios.post(API_BASE, workoutData, {
         headers: {
           Authorization: `Bearer ${tokens?.idToken?.toString()}`
@@ -201,11 +169,11 @@ function App({ signOut, user }) {
   
       console.log('Workout saved:', response.data);
       setActiveWorkout(null);
-      fetchWorkouts(); // Refresh data
+      fetchWorkouts();
     } catch (err) {
       console.error("Save failed:", {
         error: err.response?.data || err.message,
-        requestData: workoutData
+        config: err.config
       });
     }
   };
