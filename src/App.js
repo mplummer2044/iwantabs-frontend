@@ -110,16 +110,13 @@ function App({ signOut, user }) {
   // --------------------------
   const startWorkout = (template) => {
     setActiveWorkout({
-      userID: currentUser.username,
-      workoutID: `log_${Date.now()}`,
-      isTemplate: false,
-      templateID: template.templateID,
+      // ... other fields
       exercises: (template.exercises || []).map(ex => ({
         ...ex,
         sets: Array(ex.sets || 1).fill().map(() => ({
           values: {
-            reps: null,
             weight: null,
+            reps: null,
             distance: null,
             time: null
           },
@@ -127,7 +124,6 @@ function App({ signOut, user }) {
         })),
         previousStats: ex.previousStats || null
       })),
-      createdAt: new Date().toISOString()
     });
   };
 
@@ -284,15 +280,54 @@ function App({ signOut, user }) {
                     <div className="status-indicator" />
                     {exercise.measurementType === 'weights' && (
                       <>
-                        <input type="number" placeholder="Weight" />
-                        <input type="number" placeholder="Reps" />
+                        <input 
+                          type="number" 
+                          placeholder="Weight"
+                          value={set.values.weight || ''}
+                          onChange={(e) => {
+                            const updatedExercises = [...activeWorkout.exercises];
+                            const newValue = parseFloat(e.target.value) || null;
+                            updatedExercises[exIndex].sets[setIndex].values.weight = newValue;
+                            setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                          }}
+                        />
+                        <input 
+                          type="number" 
+                          placeholder="Reps"
+                          value={set.values.reps || ''}
+                          onChange={(e) => {
+                            const updatedExercises = [...activeWorkout.exercises];
+                            const newValue = parseInt(e.target.value) || null;
+                            updatedExercises[exIndex].sets[setIndex].values.reps = newValue;
+                            setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                          }}
+                        />
                       </>
                     )}
                     {exercise.measurementType === 'cardio' && (
-                      <input type="number" placeholder="Distance (miles)" />
+                      <input 
+                        type="number" 
+                        placeholder="Distance (miles)"
+                        value={set.values.distance || ''}
+                        onChange={(e) => {
+                          const updatedExercises = [...activeWorkout.exercises];
+                          const newValue = parseFloat(e.target.value) || null;
+                          updatedExercises[exIndex].sets[setIndex].values.distance = newValue;
+                          setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                        }}
+                      />
                     )}
                     {exercise.measurementType === 'timed' && (
-                      <input type="text" placeholder="Time (MM:SS)" />
+                      <input 
+                        type="text" 
+                        placeholder="Time (MM:SS)"
+                        value={set.values.time || ''}
+                        onChange={(e) => {
+                          const updatedExercises = [...activeWorkout.exercises];
+                          updatedExercises[exIndex].sets[setIndex].values.time = e.target.value;
+                          setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                        }}
+                      />
                     )}
                   </div>
                 ))}
