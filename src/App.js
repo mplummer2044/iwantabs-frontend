@@ -32,7 +32,7 @@ function App({ signOut, user }) {
 
   // User Authentication & Data Loading Section
   // ------------------------------------------
-// In your user loading useEffect
+  // In your user loading useEffect
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -90,35 +90,35 @@ function App({ signOut, user }) {
 
   // Template Creation Logic
   // -----------------------
-const createWorkoutTemplate = async () => {
-  try {
-    const templateWithIDs = {
-      ...currentTemplate,
-      exercises: currentTemplate.exercises.map(ex => ({
-        ...ex,
-        exerciseID: `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      })),
-      userID: currentUser.username
-    };
+  const createWorkoutTemplate = async () => {
+    try {
+      const templateWithIDs = {
+        ...currentTemplate,
+        exercises: currentTemplate.exercises.map(ex => ({
+          ...ex,
+          exerciseID: `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        })),
+        userID: currentUser.username
+      };
 
-    const response = await axios.post(`${API_BASE}/templates`, templateWithIDs, {
-      headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
-    });
-      
-      setWorkoutTemplates(prev => [...prev, response.data]);
-      setCurrentTemplate({ 
-        name: '', 
-        exercises: [{
-          name: '',
-          measurementType: 'weights',
-          sets: 1,
-          previousStats: null
-        }]
+      const response = await axios.post(`${API_BASE}/templates`, templateWithIDs, {
+        headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
       });
-    } catch (err) {
-      console.error("Creation failed:", err.response?.data || err.message);
-    }
-  };
+        
+        setWorkoutTemplates(prev => [...prev, response.data]);
+        setCurrentTemplate({ 
+          name: '', 
+          exercises: [{
+            name: '',
+            measurementType: 'weights',
+            sets: 1,
+            previousStats: null
+          }]
+        });
+      } catch (err) {
+        console.error("Creation failed:", err.response?.data || err.message);
+      }
+    };
 
   // Workout Session Management
   // --------------------------
@@ -162,59 +162,6 @@ const createWorkoutTemplate = async () => {
     }
   };
 
-  // Create the new workout structure
-  const newWorkout = {
-    userID: currentUser.username,
-    workoutID: `log_${Date.now()}`,
-    templateID: template.templateID,
-    createdAt: new Date().toISOString(),
-    exercises: template.exercises.map(ex => ({
-      exerciseID: ex.exerciseID, // Add this to your templates
-      name: ex.name,
-      measurementType: ex.measurementType,
-      sets: Array(ex.sets || 1).fill().map(() => ({
-        values: {
-          reps: null,
-          weight: null,
-          distance: null,
-          time: null
-        },
-        status: 'pending'
-      })),
-      previousStats: previousWorkouts[0]?.exercises?.find(e => 
-        e.exerciseID === ex.exerciseID
-      )?.sets || null
-    }))
-  };
-
-  
-    const lastPerformance = previousWorkouts[0] || null;
-  
-    setActiveWorkout({
-      userID: currentUser.username,
-      workoutID: `log_${Date.now()}`,
-      isTemplate: false,
-      templateID: template.templateID,
-      exercises: (template.exercises || []).map(ex => ({
-        ...ex,
-        sets: Array(ex.sets || 1).fill().map(() => ({
-          values: {
-            reps: null,
-            weight: null,
-            distance: null,
-            time: null
-          },
-          status: 'pending'
-        })),
-        previousStats: lastPerformance?.exercises?.find(e => 
-          e.name === ex.name
-        )?.sets?.[0]?.values || null
-      })),
-      createdAt: new Date().toISOString(),
-      lastPerformance // Store the previous workout data
-    });
-  };
-
   const updateSetStatus = (exerciseIndex, setIndex, status) => {
     const updatedExercises = [...activeWorkout.exercises];
     updatedExercises[exerciseIndex].sets[setIndex].status = status;
@@ -223,6 +170,7 @@ const createWorkoutTemplate = async () => {
 
   const saveWorkoutProgress = async () => {
   try {
+    const { tokens } = await fetchAuthSession();
     const workoutData = {
       ...activeWorkout,
       exerciseList: activeWorkout.exercises.map(exercise => ({
@@ -245,16 +193,16 @@ const createWorkoutTemplate = async () => {
     console.log('Validated workout data:', workoutData);
     
     const response = await axios.post(API_BASE, workoutData, {
-      headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
-    });
+        headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
+      });
 
-    console.log('Workout saved:', response.data);
-    setActiveWorkout(null);
-    fetchWorkouts();
-  } catch (err) { // Add catch block
-    console.error('Save failed:', err);
-  }
-};
+      console.log('Workout saved:', response.data);
+      setActiveWorkout(null);
+      fetchWorkouts();
+    } catch (err) { // Add catch block
+      console.error('Save failed:', err);
+    }
+  };
 
   // UI Components Section
   // ----------------------
@@ -485,6 +433,6 @@ const createWorkoutTemplate = async () => {
       </div>
     </div>
   );
-
+}
 
 export default withAuthenticator(App);
