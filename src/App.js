@@ -121,89 +121,128 @@ function App({ signOut, user }) {
       }
     };
 
-  // Workout Session Management
-  // --------------------------
-  const startWorkout = async (template) => {
-    try {
-      const { tokens } = await fetchAuthSession();
-      const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
-        params: { 
-          templateID: template.templateID,
-          limit: 2 // Fetch last 2 workouts
-        },
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tokens?.idToken?.toString()}`
-        }
-      });
-  
-      setActiveWorkout({
-        userID: currentUser.username,
-        workoutID: `workout_${Date.now()}`,
+ // Workout Session Management
+// --------------------------
+const startWorkout = async (template) => {
+  try {
+    const { tokens } = await fetchAuthSession();
+    const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
+      params: { 
         templateID: template.templateID,
-        createdAt: new Date().toISOString(),
-        exercises: template.exercises.map(exercise => ({
-          ...exercise,
-          exerciseID: exercise.exerciseID,
-          sets: Array(exercise.sets || 1).fill().map(() => ({
-            values: {
-              reps: null,
-              weight: null,
-              distance: null,
-              time: null
-            },
-            status: 'pending'
-          })),
-          previousStats: previousWorkouts.map(workout => ({
-            date: workout.createdAt,
-            sets: workout.exercises?.find(e => 
-              e.exerciseID === exercise.exerciseID
-            )?.sets || null
-          }))
-        })),
-        previousWorkouts // Store all previous workouts
-      });
-    } catch (err) {
-      console.error("Workout initialization failed:", err);
-    }
-  };
+        limit: 2
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${tokens?.idToken?.toString()}`
+      }
+    });
 
-  const saveWorkoutProgress = async () => {
-    try {
-      const { tokens } = await fetchAuthSession(); // Don't forget auth!
-      
-      const workoutData = {
-        ...activeWorkout,
-        improvements: activeWorkout.exercises.map(exercise => {
-          const lastWorkout = activeWorkout.previousWorkouts?.[0];
-          if (!lastWorkout) return null;
-          
-          const lastExercise = lastWorkout.exercises?.find(e => e.exerciseID === exercise.exerciseID);
-          if (!lastExercise) return null;
-          
-          return {
-            exerciseID: exercise.exerciseID,
-            improved: exercise.sets.some((set, i) => {
-              const lastSet = lastExercise.sets?.[i];
-              if (!lastSet?.values) return false;
-              return (set.values.weight > (lastSet.values.weight || 0)) || 
-                     (set.values.reps > (lastSet.values.reps || 0));
-            })
-          };
-        })
-      };
-  
-      await axios.post(API_BASE, workoutData, {
-        headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
-      });
-  
-      fetchWorkouts();
-      setActiveWorkout(null);
-    } catch (err) {
-      console.error("Save failed:", err);
-      alert("Failed to save. Check console for details.");
-    }
-  };
+    // Safely initialize workout with fallbacks
+    setActiveWorkout({
+      userID: currentUser?.username || '',
+      workoutID: `workout_${Date.now()}`,
+      templateID: template.templateID || '',
+      createdAt: new Date().toISOString(),
+      exercises: (template.exercises || []).map(exercise => ({
+        name: exercise.name || 'Unnamed Exercise',
+        exerciseID: exercise.exerciseID || `ex_${Date.now()}`,
+        measurementType: exercise.measurementType || 'weights',
+        sets: Array(Math.max(1, exercise.sets || 1)).fill().map(() => ({
+          values: {
+            reps: null,
+            weight: null,
+            distance: null,
+            time: null
+          },
+          status: 'pending'
+        })),
+        previousStats: previousWorkouts.map(workout => ({
+          date: workout.createdAt,
+          sets: (workout.exercises || []).find(e => 
+            e.exerciseID === exercise.exerciseID
+          )?.sets || null
+        }))
+      })),
+      previousWorkouts
+    });
+  } catch (err) {
+    console.error("Workout initialization failed:", err);
+    alert("Failed to load workout template. Please try again.");
+  }
+};
+
+const updateSetStatus = (exerciseIndex, setIndex, status) => {
+  try {
+    if (!activeWorkout || !activeWorkout.exercises) return;
+    
+    const updatedExercises = [...activeWorkout.exercises];
+    if (!updatedExercises[exerciseIndex]?.sets?.[setIndex]) return;
+    
+    updatedExercises[exerciseIndex].sets[setIndex].status = status;
+    setActiveWorkout({ ...activeWorkout, exercises: updatedExercises });
+  } catch (err) {
+    console.error("Failed to update set status:", err);
+  }
+};
+
+const saveWorkoutProgress = async () => {
+  try {
+    if (!activeWorkout) return;
+    
+    const { tokens } = await fetchAuthSession();
+    const workoutData = {
+      ...activeWorkout,
+      completedAt: new Date().toISOString(),
+      improvements: activeWorkout.exercises.map(exercise => {
+        const lastWorkout = activeWorkout.previousWorkouts?.[0];
+        if (!lastWorkout) return null;
+
+        const lastExercise = (lastWorkout.exercises || []).find(
+          e => e.exerciseID === exercise.exerciseID
+        );
+
+        if (!lastExercise) return null;
+
+        return {
+          exerciseID: exercise.exerciseID,
+          improved: exercise.sets.some((set, i) => {
+            const lastSet = lastExercise.sets?.[i];
+            if (!lastSet?.values) return false;
+            
+            const currentWeight = Number(set.values?.weight || 0);
+            const lastWeight = Number(lastSet.values.weight || 0);
+            const currentReps = Number(set.values?.reps || 0);
+            const lastReps = Number(lastSet.values.reps || 0);
+            
+            return currentWeight > lastWeight || currentReps > lastReps;
+          })
+        };
+      })
+    };
+
+    // Save to API
+    const response = await axios.post(API_BASE, workoutData, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${tokens?.idToken?.toString()}`
+      }
+    });
+
+    // Refresh data
+    await fetchWorkouts();
+    setActiveWorkout(null);
+    
+    return response.data;
+  } catch (err) {
+    console.error("Save failed:", {
+      error: err,
+      message: err.message,
+      response: err.response?.data
+    });
+    alert(`Failed to save workout: ${err.response?.data?.message || err.message}`);
+    throw err; // Re-throw if you want to handle this error further up the chain
+  }
+};
   // UI Components Section
   // ----------------------
   return (
