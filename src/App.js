@@ -90,17 +90,20 @@ function App({ signOut, user }) {
 
   // Template Creation Logic
   // -----------------------
-  const createWorkoutTemplate = async () => {
-    try {
-      const { tokens } = await fetchAuthSession();
-      const response = await axios.post(`${API_BASE}/templates`, {
-        ...currentTemplate,
-        userID: currentUser.username
-      }, {
-        headers: {
-          Authorization: `Bearer ${tokens?.idToken?.toString()}`
-        }
-      });
+const createWorkoutTemplate = async () => {
+  try {
+    const templateWithIDs = {
+      ...currentTemplate,
+      exercises: currentTemplate.exercises.map(ex => ({
+        ...ex,
+        exerciseID: `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      })),
+      userID: currentUser.username
+    };
+
+    const response = await axios.post(`${API_BASE}/templates`, templateWithIDs, {
+      headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
+    });
       
       setWorkoutTemplates(prev => [...prev, response.data]);
       setCurrentTemplate({ 
@@ -119,13 +122,71 @@ function App({ signOut, user }) {
 
   // Workout Session Management
   // --------------------------
-  const startWorkout = (template) => {
-    // Find previous workouts with this template
-    const previousWorkouts = workoutHistory.filter(w => 
-      w.templateID === template.templateID
-    ).sort((a, b) => 
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
+  const startWorkout = async (template) => {
+    try {
+      // Get previous workouts for this template using GSI
+      const { data: previousWorkouts } = await axios.get(`${API_BASE}/history`, {
+        params: { 
+          templateID: template.templateID,
+          limit: 3
+        }
+      });
+  
+      const lastPerformance = previousWorkouts[0] || null;
+  
+      setActiveWorkout({
+        userID: currentUser.username,
+        workoutID: `log_${Date.now()}`,
+        isTemplate: false,
+        templateID: template.templateID,
+        exercises: (template.exercises || []).map(ex => ({
+          ...ex,
+          sets: Array(ex.sets || 1).fill().map(() => ({
+            values: {
+              reps: null,
+              weight: null,
+              distance: null,
+              time: null
+            },
+            status: 'pending'
+          })),
+          previousStats: lastPerformance?.exercises?.find(e => 
+            e.name === ex.name
+          )?.sets?.[0]?.values || null
+        })),
+        createdAt: new Date().toISOString(),
+        lastPerformance
+      });
+    } catch (err) {
+      console.error("Workout initialization failed:", err);
+    }
+  };
+
+  // Create the new workout structure
+  const newWorkout = {
+    userID: currentUser.username,
+    workoutID: `log_${Date.now()}`,
+    templateID: template.templateID,
+    createdAt: new Date().toISOString(),
+    exercises: template.exercises.map(ex => ({
+      exerciseID: ex.exerciseID, // Add this to your templates
+      name: ex.name,
+      measurementType: ex.measurementType,
+      sets: Array(ex.sets || 1).fill().map(() => ({
+        values: {
+          reps: null,
+          weight: null,
+          distance: null,
+          time: null
+        },
+        status: 'pending'
+      })),
+      previousStats: previousWorkouts[0]?.exercises?.find(e => 
+        e.exerciseID === ex.exerciseID
+      )?.sets || null
+    }))
+  };
+
   
     const lastPerformance = previousWorkouts[0] || null;
   
@@ -161,56 +222,39 @@ function App({ signOut, user }) {
   };
 
   const saveWorkoutProgress = async () => {
-    try {
-      // Validate required fields before sending
-      if (!activeWorkout?.userID || !activeWorkout?.workoutID) {
-        throw new Error("Missing required workout data");
-      }
-  
-      const { tokens } = await fetchAuthSession();
-      
-      const workoutData = {
-        userID: activeWorkout.userID,
-        workoutID: activeWorkout.workoutID,
-        createdAt: activeWorkout.createdAt,
-        templateID: activeWorkout.templateID || '', // Ensure string value
-        isTemplate: false,
-        exerciseList: activeWorkout.exercises.map(exercise => ({
-          name: exercise.name,
-          measurementType: exercise.measurementType,
-          sets: exercise.sets.map(set => ({
-            values: {
-              weight: set.values.weight ? Number(set.values.weight) : null,
-              reps: set.values.reps ? Number(set.values.reps) : null,
-              distance: set.values.distance ? Number(set.values.distance) : null,
-              time: set.values.time || null
-            },
-            status: set.status
-          })),
-          previousStats: exercise.previousStats || null
-        }))
-      };
-  
-      console.log('Validated workout data:', workoutData);
-      
-      const response = await axios.post(API_BASE, workoutData, {
-        headers: {
-          Authorization: `Bearer ${tokens?.idToken?.toString()}`
-        }
-      });
-  
-      console.log('Workout saved:', response.data);
-      setActiveWorkout(null);
-      fetchWorkouts();
-    } catch (err) {
-      console.error("Save failed:", {
-        error: err.message,
-        response: err.response?.data,
-        stack: err.stack
-      });
-      alert(`Failed to save workout: ${err.message}`);
-    }
-  };
+  try {
+    const workoutData = {
+      ...activeWorkout,
+      exerciseList: activeWorkout.exercises.map(exercise => ({
+        exerciseID: exercise.exerciseID, // Include exercise ID
+        name: exercise.name,
+        measurementType: exercise.measurementType,
+        sets: exercise.sets.map(set => ({
+          values: {
+            weight: set.values.weight ? Number(set.values.weight) : null,
+            reps: set.values.reps ? Number(set.values.reps) : null,
+            distance: set.values.distance ? Number(set.values.distance) : null,
+            time: set.values.time || null
+          },
+          status: set.status
+        })),
+        previousStats: exercise.previousStats || null
+      }))
+    };
+
+    console.log('Validated workout data:', workoutData);
+    
+    const response = await axios.post(API_BASE, workoutData, {
+      headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
+    });
+
+    console.log('Workout saved:', response.data);
+    setActiveWorkout(null);
+    fetchWorkouts();
+  } catch (err) { // Add catch block
+    console.error('Save failed:', err);
+  }
+};
 
   // UI Components Section
   // ----------------------
@@ -232,17 +276,23 @@ function App({ signOut, user }) {
           onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
         />
         
-        {currentTemplate.exercises.map((exercise, index) => (
-          <div key={index} className="exercise-block">
-            <input
-              placeholder="Exercise Name"
-              value={exercise.name}
-              onChange={(e) => {
-                const exercises = [...currentTemplate.exercises];
-                exercises[index].name = e.target.value;
-                setCurrentTemplate({ ...currentTemplate, exercises });
-              }}
-            />
+        // In your template creation UI
+      {currentTemplate.exercises.map((exercise, index) => (
+        <div key={index} className="exercise-block">
+          <input
+            placeholder="Exercise Name"
+            value={exercise.name}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index] = {
+                ...exercises[index],
+                name: e.target.value,
+                // Preserve exerciseID if exists
+                exerciseID: exercise.exerciseID || `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+              };
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          />
             <select
               value={exercise.measurementType}
               onChange={(e) => {
@@ -435,6 +485,6 @@ function App({ signOut, user }) {
       </div>
     </div>
   );
-}
+
 
 export default withAuthenticator(App);
