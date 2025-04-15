@@ -170,7 +170,6 @@ function App({ signOut, user }) {
 
   const saveWorkoutProgress = async () => {
   try {
-    const { tokens } = await fetchAuthSession();
     const workoutData = {
       ...activeWorkout,
       exerciseList: activeWorkout.exercises.map(exercise => ({
