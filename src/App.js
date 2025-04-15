@@ -187,40 +187,39 @@ const updateSetStatus = (exerciseIndex, setIndex, status) => {
 
 const saveWorkoutProgress = async () => {
   try {
-    if (!activeWorkout) return;
-    
+    if (!activeWorkout) {
+      alert('No active workout to save');
+      return;
+    }
+
     const { tokens } = await fetchAuthSession();
+    
+    // Transform the data to match your API's expected format
     const workoutData = {
-      ...activeWorkout,
+      userID: currentUser.username,
+      workoutID: activeWorkout.workoutID,
+      templateID: activeWorkout.templateID,
+      createdAt: activeWorkout.createdAt,
       completedAt: new Date().toISOString(),
-      improvements: activeWorkout.exercises.map(exercise => {
-        const lastWorkout = activeWorkout.previousWorkouts?.[0];
-        if (!lastWorkout) return null;
-
-        const lastExercise = (lastWorkout.exercises || []).find(
-          e => e.exerciseID === exercise.exerciseID
-        );
-
-        if (!lastExercise) return null;
-
-        return {
-          exerciseID: exercise.exerciseID,
-          improved: exercise.sets.some((set, i) => {
-            const lastSet = lastExercise.sets?.[i];
-            if (!lastSet?.values) return false;
-            
-            const currentWeight = Number(set.values?.weight || 0);
-            const lastWeight = Number(lastSet.values.weight || 0);
-            const currentReps = Number(set.values?.reps || 0);
-            const lastReps = Number(lastSet.values.reps || 0);
-            
-            return currentWeight > lastWeight || currentReps > lastReps;
-          })
-        };
-      })
+      isTemplate: false,
+      exerciseList: activeWorkout.exercises.map(exercise => ({
+        name: exercise.name,
+        exerciseID: exercise.exerciseID,
+        measurementType: exercise.measurementType,
+        sets: exercise.sets.map(set => ({
+          values: {
+            weight: set.values.weight ? Number(set.values.weight) : null,
+            reps: set.values.reps ? Number(set.values.reps) : null,
+            distance: set.values.distance ? Number(set.values.distance) : null,
+            time: set.values.time || null
+          },
+          status: set.status
+        }))
+      })),
+      // Only include if your API expects it
+      ...(activeWorkout.previousWorkouts && { previousWorkouts: activeWorkout.previousWorkouts })
     };
 
-    // Save to API
     const response = await axios.post(API_BASE, workoutData, {
       headers: { 
         'Content-Type': 'application/json',
@@ -228,10 +227,9 @@ const saveWorkoutProgress = async () => {
       }
     });
 
-    // Refresh data
-    await fetchWorkouts();
-    setActiveWorkout(null);
-    
+    console.log('Workout saved successfully:', response.data);
+    await fetchWorkouts(); // Refresh your workout list
+    setActiveWorkout(null); // Close the active workout
     return response.data;
   } catch (err) {
     console.error("Save failed:", {
@@ -240,9 +238,10 @@ const saveWorkoutProgress = async () => {
       response: err.response?.data
     });
     alert(`Failed to save workout: ${err.response?.data?.message || err.message}`);
-    throw err; // Re-throw if you want to handle this error further up the chain
+    throw err;
   }
 };
+
   // UI Components Section
   // ----------------------
   return (
