@@ -125,12 +125,15 @@ function App({ signOut, user }) {
   // --------------------------
   const startWorkout = async (template) => {
     try {
-      // Get previous workouts for this template using GSI
-      const { data: previousWorkouts } = await axios.get(`${API_BASE}/history`, {
+      const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
         params: { 
           templateID: template.templateID,
           limit: 3
-        }
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: false // Important for CORS with wildcard origin
       });
   
       const lastPerformance = previousWorkouts[0] || null;
