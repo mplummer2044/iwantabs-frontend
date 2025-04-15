@@ -236,6 +236,7 @@ const saveWorkoutProgress = async () => {
     console.log('Workout saved successfully:', response.data);
     await fetchWorkouts(); // Refresh your workout list
     setActiveWorkout(null); // Close the active workout
+    console.log("Active Workout Structure:", JSON.stringify(activeWorkout, null, 2));
     return response.data;
   } catch (err) {
     console.error("Save failed:", {
@@ -348,45 +349,66 @@ const saveWorkoutProgress = async () => {
             </div>
 
 
-          {/* Current Workout Column */}
-          <div className="workout-column current">
-            <h3>Current Workout</h3>
-            {activeWorkout.exerciseList?.map((exercise, exIndex) => (
-              <div key={exIndex} className="exercise-column">
-                <h4>{exercise.name}</h4>
-                
-                {/* Sets as sub-rows */}
-                <div className="sets-container">
-                  {exercise.sets.map((set, setIndex) => (
-                    <div key={setIndex} className="set-row">
-                      {/* Status indicator */}
-                      <div 
-                        className={`status-indicator ${set.status}`}
-                        onClick={() => cycleSetStatus(exIndex, setIndex)}
-                      />
-                      
-                      {/* Weight/Rep inputs */}
-                      <input
-                        type="number"
-                        placeholder="Weight"
-                        value={set.values.weight || ''}
-                        onChange={(e) => updateSetValue(exIndex, setIndex, 'weight', e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Reps"
-                        value={set.values.reps || ''}
-                        onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
-                      />
-                    </div>
-                  ))}
+    {/* Current Workout Column - UPDATED VERSION */}
+    <div className="workout-column current">
+      <h3>Current Workout</h3>
+      {activeWorkout?.exercises?.length > 0 ? (
+        activeWorkout.exercises.map((exercise, exIndex) => (
+          <div key={exIndex} className="exercise-column">
+            <h4>{exercise.name}</h4>
+            <div className="sets-container">
+              {exercise.sets.map((set, setIndex) => (
+                <div key={setIndex} className="set-row">
+                  {/* Status Indicator */}
+                  <div 
+                    className={`status-indicator ${set.status || 'pending'}`}
+                    onClick={() => {
+                      const statuses = ['good', 'medium', 'bad'];
+                      const currentIndex = statuses.indexOf(set.status);
+                      const nextStatus = statuses[(currentIndex + 1) % 3];
+                      updateSetStatus(exIndex, setIndex, nextStatus);
+                    }}
+                  />
+                  
+                  {/* Weight Input */}
+                  <input
+                    type="number"
+                    placeholder="Weight"
+                    value={set.values.weight || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const updatedExercises = [...activeWorkout.exercises];
+                      updatedExercises[exIndex].sets[setIndex].values.weight = 
+                        value === '' ? null : Number(value);
+                      setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                    }}
+                  />
+                  
+                  {/* Reps Input */}
+                  <input
+                    type="number"
+                    placeholder="Reps"
+                    value={set.values.reps || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const updatedExercises = [...activeWorkout.exercises];
+                      updatedExercises[exIndex].sets[setIndex].values.reps = 
+                        value === '' ? null : Number(value);
+                      setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                    }}
+                  />
                 </div>
-              </div>
-            ))}
-            <button onClick={saveWorkoutProgress}>Finish Workout</button>
+              ))}
+            </div>
           </div>
-        </div>
+        ))
+      ) : (
+        <p>No exercises in this workout</p>
       )}
+      <button onClick={saveWorkoutProgress}>Finish Workout</button>
+    </div>
+  </div>
+)}
 
       {/* Workout History Section */}
       <div className="workout-history">
