@@ -92,6 +92,7 @@ function App({ signOut, user }) {
   // -----------------------
   const createWorkoutTemplate = async () => {
     try {
+      const { tokens } = await fetchAuthSession();
       const templateWithIDs = {
         ...currentTemplate,
         exercises: currentTemplate.exercises.map(ex => ({
@@ -170,6 +171,7 @@ function App({ signOut, user }) {
 
   const saveWorkoutProgress = async () => {
   try {
+    const { tokens } = await fetchAuthSession();
     const workoutData = {
       ...activeWorkout,
       exerciseList: activeWorkout.exercises.map(exercise => ({
