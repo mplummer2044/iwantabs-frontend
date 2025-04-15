@@ -125,27 +125,27 @@ function App({ signOut, user }) {
   // --------------------------
   const startWorkout = async (template) => {
     try {
+      const { tokens } = await fetchAuthSession();
       const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
         params: { 
           templateID: template.templateID,
-          limit: 3
+          limit: 2 // Fetch last 2 workouts
         },
         headers: {
-          'Content-Type': 'application/json'
-        },
-        withCredentials: false // Important for CORS with wildcard origin
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokens?.idToken?.toString()}`
+        }
       });
-  
-      const lastPerformance = previousWorkouts[0] || null;
   
       setActiveWorkout({
         userID: currentUser.username,
-        workoutID: `log_${Date.now()}`,
-        isTemplate: false,
+        workoutID: `workout_${Date.now()}`,
         templateID: template.templateID,
-        exercises: (template.exercises || []).map(ex => ({
-          ...ex,
-          sets: Array(ex.sets || 1).fill().map(() => ({
+        createdAt: new Date().toISOString(),
+        exercises: template.exercises.map(exercise => ({
+          ...exercise,
+          exerciseID: exercise.exerciseID,
+          sets: Array(exercise.sets || 1).fill().map(() => ({
             values: {
               reps: null,
               weight: null,
@@ -154,60 +154,56 @@ function App({ signOut, user }) {
             },
             status: 'pending'
           })),
-          previousStats: lastPerformance?.exercises?.find(e => 
-            e.name === ex.name
-          )?.sets?.[0]?.values || null
+          previousStats: previousWorkouts.map(workout => ({
+            date: workout.createdAt,
+            sets: workout.exercises?.find(e => 
+              e.exerciseID === exercise.exerciseID
+            )?.sets || null
+          }))
         })),
-        createdAt: new Date().toISOString(),
-        lastPerformance
+        previousWorkouts // Store all previous workouts
       });
     } catch (err) {
       console.error("Workout initialization failed:", err);
     }
   };
 
-  const updateSetStatus = (exerciseIndex, setIndex, status) => {
-    const updatedExercises = [...activeWorkout.exercises];
-    updatedExercises[exerciseIndex].sets[setIndex].status = status;
-    setActiveWorkout({ ...activeWorkout, exercises: updatedExercises });
-  };
-
   const saveWorkoutProgress = async () => {
-  try {
-    const { tokens } = await fetchAuthSession();
-    const workoutData = {
-      ...activeWorkout,
-      exerciseList: activeWorkout.exercises.map(exercise => ({
-        exerciseID: exercise.exerciseID, // Include exercise ID
-        name: exercise.name,
-        measurementType: exercise.measurementType,
-        sets: exercise.sets.map(set => ({
-          values: {
-            weight: set.values.weight ? Number(set.values.weight) : null,
-            reps: set.values.reps ? Number(set.values.reps) : null,
-            distance: set.values.distance ? Number(set.values.distance) : null,
-            time: set.values.time || null
-          },
-          status: set.status
-        })),
-        previousStats: exercise.previousStats || null
-      }))
-    };
-
-    console.log('Validated workout data:', workoutData);
-    
-    const response = await axios.post(API_BASE, workoutData, {
+    try {
+      const { tokens } = await fetchAuthSession(); // Don't forget auth!
+      
+      const workoutData = {
+        ...activeWorkout,
+        improvements: activeWorkout.exercises.map(exercise => {
+          const lastWorkout = activeWorkout.previousWorkouts?.[0];
+          if (!lastWorkout) return null;
+          
+          const lastExercise = lastWorkout.exercises?.find(e => e.exerciseID === exercise.exerciseID);
+          if (!lastExercise) return null;
+          
+          return {
+            exerciseID: exercise.exerciseID,
+            improved: exercise.sets.some((set, i) => {
+              const lastSet = lastExercise.sets?.[i];
+              if (!lastSet?.values) return false;
+              return (set.values.weight > (lastSet.values.weight || 0)) || 
+                     (set.values.reps > (lastSet.values.reps || 0));
+            })
+          };
+        })
+      };
+  
+      await axios.post(API_BASE, workoutData, {
         headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
       });
-
-      console.log('Workout saved:', response.data);
-      setActiveWorkout(null);
+  
       fetchWorkouts();
-    } catch (err) { // Add catch block
-      console.error('Save failed:', err);
+      setActiveWorkout(null);
+    } catch (err) {
+      console.error("Save failed:", err);
+      alert("Failed to save. Check console for details.");
     }
   };
-
   // UI Components Section
   // ----------------------
   return (
@@ -228,7 +224,7 @@ function App({ signOut, user }) {
           onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
         />
         
-        // In your template creation UI
+        
       {currentTemplate.exercises.map((exercise, index) => (
         <div key={index} className="exercise-block">
           <input
@@ -284,33 +280,33 @@ function App({ signOut, user }) {
 
       {/* Active Workout Interface */}
       {activeWorkout && (
-        <div className="workout-grid">
-          {/* Last Performance Column */}
-          <div className="workout-column previous">
-            <h3>Last Performance</h3>
-            {activeWorkout.lastPerformance && (
-              <>
-                <h4 className="workout-date">
-                  {new Date(activeWorkout.lastPerformance.createdAt).toLocaleDateString()}
-                </h4>
-                {activeWorkout.lastPerformance.exerciseList?.map((exercise, exIndex) => (
-                  <div key={exIndex} className="exercise-column">
-                    <h4>{exercise.name}</h4>
-                    {exercise.sets?.map((set, setIndex) => (
-                      <div key={setIndex} className="set-row">
-                        {Object.entries(set.values || {}).map(([key, value]) => (
-                          <span key={key}>{key}: {value ?? 'N/A'}</span>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </>
-            )}
-            {!activeWorkout.lastPerformance && (
-              <p>No previous performance found</p>
-            )}
-          </div>
+      <div className="workout-grid">
+        {/* Previous Workouts Column - Now shows last 2 workouts */}
+        <div className="workout-column previous">
+          <h3>Previous Workouts</h3>
+          {activeWorkout.previousWorkouts?.map((workout, workoutIndex) => (
+            <div key={workoutIndex} className="previous-workout">
+              <h4 className="workout-date">
+                {new Date(workout.createdAt).toLocaleDateString()} - Performance
+              </h4>
+              {workout.exercises?.map((exercise, exIndex) => (
+                <div key={exIndex} className="exercise-column">
+                  <h5>{exercise.name}</h5>
+                  {exercise.sets?.map((set, setIndex) => (
+                    <div key={setIndex} className="set-row">
+                      {Object.entries(set.values || {}).map(([key, value]) => (
+                        value && <span key={key}>{key}: {value}</span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+          {!activeWorkout.previousWorkouts?.length && (
+            <p>No previous workouts found</p>
+          )}
+        </div>
 
           {/* Current Workout Column */}
           <div className="workout-column current">
