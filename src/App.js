@@ -137,17 +137,15 @@ const startWorkout = async (template) => {
       }
     });
 
-    // Safely initialize workout with fallbacks
     setActiveWorkout({
-      userID: currentUser?.username || '',
+      userID: currentUser.username,
       workoutID: `workout_${Date.now()}`,
-      templateID: template.templateID || '',
+      templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exercises: (template.exercises || []).map(exercise => ({
-        name: exercise.name || 'Unnamed Exercise',
-        exerciseID: exercise.exerciseID || `ex_${Date.now()}`,
-        measurementType: exercise.measurementType || 'weights',
-        sets: Array(Math.max(1, exercise.sets || 1)).fill().map(() => ({
+      exercises: template.exercises.map(exercise => ({
+        ...exercise,
+        exerciseID: exercise.exerciseID,
+        sets: Array(exercise.sets || 1).fill().map(() => ({
           values: {
             reps: null,
             weight: null,
@@ -156,18 +154,20 @@ const startWorkout = async (template) => {
           },
           status: 'pending'
         })),
-        previousStats: previousWorkouts.map(workout => ({
-          date: workout.createdAt,
-          sets: (workout.exercises || []).find(e => 
-            e.exerciseID === exercise.exerciseID
-          )?.sets || null
-        }))
+        // Changed structure here:
+        previousStats: previousWorkouts.flatMap(workout => 
+          workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
+        )
       })),
-      previousWorkouts
+      previousWorkouts: previousWorkouts.map(workout => ({
+        ...workout,
+        // Ensure consistent exerciseList structure
+        exerciseList: workout.exerciseList || workout.exercises || []
+      }))
     });
   } catch (err) {
     console.error("Workout initialization failed:", err);
-    alert("Failed to load workout template. Please try again.");
+    alert("Failed to load previous workouts");
   }
 };
 
@@ -318,34 +318,30 @@ const saveWorkoutProgress = async () => {
       </div>
 
       {/* Active Workout Interface */}
-      {activeWorkout && (
-      <div className="workout-grid">
-        {/* Previous Workouts Column - Now shows last 2 workouts */}
-        <div className="workout-column previous">
-          <h3>Previous Workouts</h3>
-          {activeWorkout.previousWorkouts?.map((workout, workoutIndex) => (
-            <div key={workoutIndex} className="previous-workout">
-              <h4 className="workout-date">
-                {new Date(workout.createdAt).toLocaleDateString()} - Performance
-              </h4>
-              {workout.exercises?.map((exercise, exIndex) => (
-                <div key={exIndex} className="exercise-column">
-                  <h5>{exercise.name}</h5>
-                  {exercise.sets?.map((set, setIndex) => (
-                    <div key={setIndex} className="set-row">
-                      {Object.entries(set.values || {}).map(([key, value]) => (
-                        value && <span key={key}>{key}: {value}</span>
+        {activeWorkout && (
+          <div className="workout-grid">
+            {/* Previous Workouts Column */}
+            <div className="workout-column previous">
+              <h3>Previous Workouts</h3>
+              {activeWorkout.previousWorkouts?.map((workout, i) => (
+                <div key={i} className="previous-workout">
+                  <h4>{new Date(workout.createdAt).toLocaleDateString()}</h4>
+                  {workout.exerciseList?.map((exercise, exIdx) => (
+                    <div key={exIdx} className="exercise-history">
+                      <h5>{exercise.name}</h5>
+                      {exercise.sets?.map((set, setIdx) => (
+                        <div key={setIdx} className="set-history">
+                          {Object.entries(set.values || {}).map(([key, val]) => (
+                            val && <span key={key}>{key}: {val}</span>
+                          ))}
+                        </div>
                       ))}
                     </div>
                   ))}
                 </div>
               ))}
             </div>
-          ))}
-          {!activeWorkout.previousWorkouts?.length && (
-            <p>No previous workouts found</p>
-          )}
-        </div>
+
 
           {/* Current Workout Column */}
           <div className="workout-column current">
