@@ -172,17 +172,23 @@ const startWorkout = async (template) => {
 };
 
 const updateSetStatus = (exerciseIndex, setIndex, status) => {
-  try {
-    if (!activeWorkout || !activeWorkout.exercises) return;
-    
-    const updatedExercises = [...activeWorkout.exercises];
-    if (!updatedExercises[exerciseIndex]?.sets?.[setIndex]) return;
-    
-    updatedExercises[exerciseIndex].sets[setIndex].status = status;
-    setActiveWorkout({ ...activeWorkout, exercises: updatedExercises });
-  } catch (err) {
-    console.error("Failed to update set status:", err);
-  }
+  const updatedExercises = [...activeWorkout.exerciseList];
+  updatedExercises[exerciseIndex].sets[setIndex].status = status;
+  setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
+};
+
+const cycleSetStatus = (exerciseIndex, setIndex) => {
+  const statuses = ['good', 'medium', 'bad'];
+  const currentStatus = activeWorkout.exerciseList[exerciseIndex].sets[setIndex].status;
+  const newStatus = statuses[(statuses.indexOf(currentStatus) + 1) % 3];
+  updateSetStatus(exerciseIndex, setIndex, newStatus);
+};
+
+const updateSetValue = (exerciseIndex, setIndex, field, value) => {
+  const updatedExercises = [...activeWorkout.exerciseList];
+  updatedExercises[exerciseIndex].sets[setIndex].values[field] = 
+    value === '' ? null : Number(value);
+  setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
 };
 
 const saveWorkoutProgress = async () => {
@@ -345,74 +351,36 @@ const saveWorkoutProgress = async () => {
           {/* Current Workout Column */}
           <div className="workout-column current">
             <h3>Current Workout</h3>
-            {activeWorkout.exercises?.map((exercise, exIndex) => (
+            {activeWorkout.exerciseList?.map((exercise, exIndex) => (
               <div key={exIndex} className="exercise-column">
                 <h4>{exercise.name}</h4>
-                {exercise.sets?.map((set, setIndex) => (
-                  <div
-                    key={setIndex}
-                    className={`set-row ${set.status}`}
-                    onClick={() => {
-                      const statuses = ['good', 'medium', 'bad'];
-                      const currentIndex = statuses.indexOf(set.status);
-                      const nextStatus = statuses[(currentIndex + 1) % 3];
-                      updateSetStatus(exIndex, setIndex, nextStatus);
-                    }}
-                  >
-                    <div className="status-indicator" />
-                    {exercise.measurementType === 'weights' && (
-                      <>
-                        <input 
-                          type="number" 
-                          placeholder="Weight"
-                          value={set.values.weight || ''}
-                          onChange={(e) => {
-                            const updatedExercises = [...activeWorkout.exercises];
-                            const newValue = parseFloat(e.target.value) || null;
-                            updatedExercises[exIndex].sets[setIndex].values.weight = newValue;
-                            setActiveWorkout({...activeWorkout, exercises: updatedExercises});
-                          }}
-                        />
-                        <input 
-                          type="number" 
-                          placeholder="Reps"
-                          value={set.values.reps || ''}
-                          onChange={(e) => {
-                            const updatedExercises = [...activeWorkout.exercises];
-                            const newValue = parseInt(e.target.value) || null;
-                            updatedExercises[exIndex].sets[setIndex].values.reps = newValue;
-                            setActiveWorkout({...activeWorkout, exercises: updatedExercises});
-                          }}
-                        />
-                      </>
-                    )}
-                    {exercise.measurementType === 'cardio' && (
-                      <input 
-                        type="number" 
-                        placeholder="Distance (miles)"
-                        value={set.values.distance || ''}
-                        onChange={(e) => {
-                          const updatedExercises = [...activeWorkout.exercises];
-                          const newValue = parseFloat(e.target.value) || null;
-                          updatedExercises[exIndex].sets[setIndex].values.distance = newValue;
-                          setActiveWorkout({...activeWorkout, exercises: updatedExercises});
-                        }}
+                
+                {/* Sets as sub-rows */}
+                <div className="sets-container">
+                  {exercise.sets.map((set, setIndex) => (
+                    <div key={setIndex} className="set-row">
+                      {/* Status indicator */}
+                      <div 
+                        className={`status-indicator ${set.status}`}
+                        onClick={() => cycleSetStatus(exIndex, setIndex)}
                       />
-                    )}
-                    {exercise.measurementType === 'timed' && (
-                      <input 
-                        type="text" 
-                        placeholder="Time (MM:SS)"
-                        value={set.values.time || ''}
-                        onChange={(e) => {
-                          const updatedExercises = [...activeWorkout.exercises];
-                          updatedExercises[exIndex].sets[setIndex].values.time = e.target.value;
-                          setActiveWorkout({...activeWorkout, exercises: updatedExercises});
-                        }}
+                      
+                      {/* Weight/Rep inputs */}
+                      <input
+                        type="number"
+                        placeholder="Weight"
+                        value={set.values.weight || ''}
+                        onChange={(e) => updateSetValue(exIndex, setIndex, 'weight', e.target.value)}
                       />
-                    )}
-                  </div>
-                ))}
+                      <input
+                        type="number"
+                        placeholder="Reps"
+                        value={set.values.reps || ''}
+                        onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
             <button onClick={saveWorkoutProgress}>Finish Workout</button>
