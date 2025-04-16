@@ -1,17 +1,91 @@
-/* Updated workout grid layout */
+/* Excel-like Grid Layout */
 .workout-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
-  gap: 20px;
+  grid-template-columns: auto auto 1fr; /* Three columns: exercise name, previous sets, current workout */
+  gap: 1px;
   margin: 2rem 0;
+  background-color: #e0e0e0;
+  border: 1px solid #e0e0e0;
 }
 
 .workout-column {
   background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 0;
 }
+
+/* Exercise header column */
+.exercise-header {
+  padding: 1rem;
+  background: #f5f5f5;
+  font-weight: bold;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  left: 0;
+}
+
+/* Previous workouts column */
+.previous-sets {
+  display: grid;
+  grid-template-rows: auto;
+  background: white;
+}
+
+.previous-set {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+}
+
+/* Current workout column */
+.current-sets {
+  display: grid;
+  grid-template-rows: auto;
+}
+
+.current-set {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  display: grid;
+  grid-template-columns: 30px 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Status indicator */
+.status-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  cursor: pointer;
+}
+
+.status-indicator.good { background: #4CAF50; }
+.status-indicator.medium { background: #FFC107; }
+.status-indicator.bad { background: #F44336; }
+
+/* Input fields */
+.current-set input {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+}
+
+/* Header row */
+.workout-header {
+  grid-column: 1 / -1;
+  background: #f8f9fa;
+  padding: 1rem;
+  font-weight: bold;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+/* Remove duplicate styles and other unnecessary styles */
+
 
 /* Previous workouts columns */
 .previous-workouts {
@@ -50,21 +124,6 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
-.set-row.good { background: #e8f5e9; }
-.set-row.medium { background: #fff3e0; }
-.set-row.bad { background: #ffebee; }
-
-.status-indicator {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #ddd;
-}
-
-.set-row.good .status-indicator { background: #4CAF50; }
-.set-row.medium .status-indicator { background: #FFC107; }
-.set-row.bad .status-indicator { background: #F44336; }
 
 .exercise-block {
   display: grid;
