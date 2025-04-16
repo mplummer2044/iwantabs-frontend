@@ -263,7 +263,82 @@ return (
       )}
     </header>
 
-    {/* Template Creation Interface remains the same */}
+    {/* Template Creation Interface */}
+    <div className="workout-creator">
+      <h2>Create Workout Template</h2>
+      <input
+        type="text"
+        placeholder="Workout Name"
+        value={currentTemplate.name}
+        onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
+      />
+
+      {currentTemplate.exercises.map((exercise, index) => (
+        <div key={index} className="exercise-block">
+          <input
+            placeholder="Exercise Name"
+            value={exercise.name}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index] = {
+                ...exercises[index],
+                name: e.target.value,
+                exerciseID: exercise.exerciseID || `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+              };
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          />
+          <input
+            type="number"
+            placeholder="Sets"
+            min="1"
+            value={exercise.sets}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index].sets = Math.max(1, parseInt(e.target.value) || 1);
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          />
+          <select
+            value={exercise.measurementType}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index].measurementType = e.target.value;
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          >
+            <option value="weights">Weight x Sets x Reps</option>
+            <option value="cardio">Distance</option>
+            <option value="timed">Time</option>
+          </select>
+          <button
+            onClick={() => {
+              const exercises = currentTemplate.exercises.filter((_, i) => i !== index);
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+
+      <button
+        onClick={() => setCurrentTemplate({
+          ...currentTemplate,
+          exercises: [...currentTemplate.exercises, { 
+            name: '', 
+            measurementType: 'weights',
+            sets: 1
+          }]
+        })}
+      >
+        Add Exercise
+      </button>
+      
+      <button onClick={createWorkoutTemplate}>
+        Save Template
+      </button>
+    </div>
 
     {/* Active Workout Interface */}
     {activeWorkout && (
