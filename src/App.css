@@ -203,3 +203,34 @@ button:hover {
   border-radius: 4px;
   width: 80px;
 }
+
+/* Previous workout set styling */
+.exercise-history .set-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin: 0.3rem 0;
+  border-radius: 4px;
+}
+
+.exercise-history .set-row.good { 
+  background: #e8f5e9; 
+}
+.exercise-history .set-row.medium { 
+  background: #fff3e0; 
+}
+.exercise-history .set-row.bad { 
+  background: #ffebee; 
+}
+
+.exercise-history .status-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.exercise-history .status-indicator.good { background: #4CAF50; }
+.exercise-history .status-indicator.medium { background: #FFC107; }
+.exercise-history .status-indicator.bad { background: #F44336; }

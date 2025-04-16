@@ -217,7 +217,7 @@ const saveWorkoutProgress = async () => {
             distance: set.values.distance ? Number(set.values.distance) : null,
             time: set.values.time || null
           },
-          status: set.status
+          status: set.status || 'pending'
         }))
       })),
       // Only include if your API expects it
@@ -350,7 +350,8 @@ return (
             <div key={exIdx} className="exercise-history">
               <h5>{exercise.name}</h5>
               {exercise.sets?.map((set, setIdx) => (
-                <div key={setIdx} className="set-history">
+                <div key={setIdx} className={`set-row ${set.status || ''}`}>
+                  <div className={`status-indicator ${set.status || 'pending'}`} />
                   {Object.entries(set.values || {}).map(([key, val]) => (
                     val && <span key={key}>{key}: {val}</span>
                   ))}
