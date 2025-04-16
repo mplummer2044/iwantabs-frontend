@@ -1,8 +1,8 @@
-/* Updated App.css */
+/* Updated workout grid layout */
 .workout-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
+  gap: 20px;
   margin: 2rem 0;
 }
 
@@ -11,6 +11,26 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Previous workouts columns */
+.previous-workouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns for previous workouts */
+  gap: 20px;
+}
+
+.previous-workout {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Current workout column */
+.current-workout {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .exercise-column {
@@ -95,6 +115,10 @@ button:hover {
     grid-template-columns: 1fr;
   }
   
+  .previous-workouts {
+    grid-template-columns: 1fr;
+  }
+  
   .exercise-block {
     grid-template-columns: 1fr;
   }
@@ -118,13 +142,6 @@ button:hover {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   background: #f8f9fa;
-}
-
-.previous-workout {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .current {
