@@ -206,7 +206,7 @@ const saveWorkoutProgress = async () => {
       createdAt: activeWorkout.createdAt,
       completedAt: new Date().toISOString(),
       isTemplate: false,
-      exerciseList: activeWorkout.exercisesList.map(exercise => ({
+      exerciseList: activeWorkout.exerciseList.map(exercise => ({
         name: exercise.name,
         exerciseID: exercise.exerciseID,
         measurementType: exercise.measurementType,
