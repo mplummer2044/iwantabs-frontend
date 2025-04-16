@@ -1,33 +1,41 @@
-/* Excel-like Grid Layout */
+/* Main Grid Layout */
 .workout-grid {
   display: grid;
-  grid-template-columns: auto 1fr 1fr 1fr;
+  grid-template-columns: auto 1fr 1fr; /* Three columns: exercise names, previous, current */
   gap: 1px;
   margin: 2rem 0;
   background-color: #e0e0e0;
   border: 1px solid #e0e0e0;
+  width: 100%;
+  overflow-x: auto;
 }
 
-.sticky-header {
+/* Exercise Name Column */
+.exercise-column {
   position: sticky;
   left: 0;
-  z-index: 1;
-}
-
-.exercise-header {
-  padding: 1rem;
-  background: #f5f5f5;
-  font-weight: bold;
-  border-right: 1px solid #e0e0e0;
-}
-
-.previous-workout-column {
-  display: grid;
-  grid-template-rows: auto auto 1fr;
+  z-index: 2;
   background: white;
 }
 
-.previous-workout-header {
+.exercise-name {
+  padding: 1rem;
+  background: #f5f5f5;
+  font-weight: bold;
+  border-bottom: 1px solid #e0e0e0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* Workout Columns (Previous and Current) */
+.workout-column {
+  display: grid;
+  grid-template-rows: auto auto; /* Header and sets */
+  background: white;
+}
+
+.workout-header {
   padding: 0.5rem;
   background: #f5f5f5;
   font-weight: bold;
@@ -35,7 +43,7 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.previous-workout-duration {
+.workout-duration {
   padding: 0.3rem;
   font-size: 0.8rem;
   text-align: center;
@@ -43,303 +51,58 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.previous-sets {
+/* Sets Container */
+.sets-container {
   display: grid;
-  grid-template-rows: repeat(auto-fill, minmax(40px, 1fr));
+  grid-auto-rows: minmax(60px, auto); /* Each set row has minimum height */
 }
 
-.previous-set {
-  padding: 0.5rem;
+.set-row {
   display: grid;
-  grid-template-columns: 20px 1fr 1fr;
+  grid-template-columns: 30px 1fr 1fr; /* Status, weight, reps or other metrics */
   gap: 0.5rem;
+  padding: 0.5rem;
   align-items: center;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.current-workout-column {
-  display: grid;
-  grid-template-rows: auto 1fr;
+/* Status Indicator */
+.status-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  margin: 0 auto;
 }
 
-.current-workout-header {
-  padding: 0.5rem;
-  background: #f5f5f5;
-  font-weight: bold;
-  text-align: center;
-  border-bottom: 1px solid #e0e0e0;
+.status-indicator.good { background: #4CAF50; }
+.status-indicator.medium { background: #FFC107; }
+.status-indicator.bad { background: #F44336; }
+
+/* Input Fields */
+.set-row input {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 80%;
 }
 
-.current-sets {
-  display: grid;
-  grid-template-rows: repeat(auto-fill, minmax(40px, 1fr));
-}
-
-.current-set {
-  padding: 0.5rem;
-  display: grid;
-  grid-template-columns: 20px 1fr 1fr;
-  gap: 0.5rem;
-  align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-}
-
+/* Footer */
 .workout-footer {
+  grid-column: 1 / -1;
   padding: 1rem;
   text-align: right;
   background: white;
 }
 
-/* Keep all your existing status indicator styles */
-/* Excel-like Grid Layout */
-.workout-column {
-  background: white;
-  padding: 0;
-}
-
-/* Exercise header column */
-.exercise-header {
-  padding: 1rem;
-  background: #f5f5f5;
-  font-weight: bold;
-  border-right: 1px solid #e0e0e0;
-  display: flex;
-  align-items: center;
-  position: sticky;
-  left: 0;
-}
-
-/* Status indicator */
-.status-indicator {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #ddd;
-  cursor: pointer;
-}
-
-.status-indicator.good { background: #4CAF50; }
-.status-indicator.medium { background: #FFC107; }
-.status-indicator.bad { background: #F44336; }
-
-/* Input fields */
-.current-set input {
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 100%;
-}
-
-/* Header row */
-.workout-header {
-  grid-column: 1 / -1;
-  background: #f8f9fa;
-  padding: 1rem;
-  font-weight: bold;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-/* Remove duplicate styles and other unnecessary styles */
-
-
-/* Previous workouts columns */
-.previous-workouts {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two columns for previous workouts */
-  gap: 20px;
-}
-
-.previous-workout {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Current workout column */
-.current-workout {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.exercise-column {
-  margin: 1rem 0;
-  padding: 1rem;
-  border: 2px solid #eee;
-  border-radius: 8px;
-}
-
-.set-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem;
-  margin: 0.5rem 0;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.exercise-block {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 1rem;
-  margin: 1rem 0;
-  align-items: center;
-}
-
-.template-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.template-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-align: center;
-}
-
-input, select {
-  padding: 0.8rem;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  width: 100%;
-  margin: 0.5rem 0;
-}
-
-button {
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  filter: brightness(0.9);
-}
-
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .workout-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto 1fr;
   }
   
-  .previous-workouts {
-    grid-template-columns: 1fr;
-  }
-  
-  .exercise-block {
-    grid-template-columns: 1fr;
+  .workout-column:nth-child(3) {
+    grid-column: 1 / -1;
   }
 }
-
-/* App.css additions */
-
-.workout-column {
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.previous {
-  grid-column: span 2;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  background: #f8f9fa;
-}
-
-.current {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.exercise-column {
-  margin-bottom: 15px;
-}
-
-.set-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 5px;
-}
-
-/* Nested set rows */
-.sets-container {
-  margin-top: 10px;
-  border-left: 3px solid #eee;
-  padding-left: 15px;
-}
-
-.exercise-column {
-  margin-bottom: 1.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.set-row {
-  display: grid;
-  grid-template-columns: 30px 1fr 1fr;
-  gap: 1rem;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.set-row:last-child {
-  border-bottom: none;
-}
-
-.status-indicator {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.status-indicator.good { background: #4CAF50; }
-.status-indicator.medium { background: #FFC107; }
-.status-indicator.bad { background: #F44336; }
-
-.set-row input {
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 80px;
-}
-
-/* Previous workout set styling */
-.exercise-history .set-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  margin: 0.3rem 0;
-  border-radius: 4px;
-}
-
-.exercise-history .set-row.good { 
-  background: #e8f5e9; 
-}
-.exercise-history .set-row.medium { 
-  background: #fff3e0; 
-}
-.exercise-history .set-row.bad { 
-  background: #ffebee; 
-}
-
-.exercise-history .status-indicator {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 1px solid #ddd;
-}
-
-.exercise-history .status-indicator.good { background: #4CAF50; }
-.exercise-history .status-indicator.medium { background: #FFC107; }
-.exercise-history .status-indicator.bad { background: #F44336; }

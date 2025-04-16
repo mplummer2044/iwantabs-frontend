@@ -348,110 +348,106 @@ return (
     {/* Active Workout Interface */}
     {activeWorkout && (
       <div className="workout-grid">
-        {/* Grid Header - Shows workout name */}
-        <div className="workout-header" style={{ gridColumn: '1 / -1' }}>
-          {workoutTemplates.find(t => t.templateID === activeWorkout.templateID)?.name || "Custom Workout"}
+        {/* Exercise Names Column */}
+        <div className="exercise-column">
+          <div className="workout-header">Exercises</div>
+          <div className="workout-duration">Type</div>
+          <div className="sets-container">
+            {activeWorkout.exerciseList.map((exercise, exIndex) => (
+              <div key={`ex-name-${exIndex}`} className="exercise-name">
+                {exercise.name}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Exercise Name Column */}
-        <div className="exercise-header sticky-header">
-          Exercises
-        </div>
-        
-        {/* Previous Workouts Columns */}
-        {activeWorkout.previousWorkouts?.slice(0, 2).map((workout, i) => (
-          <div key={`prev-col-${i}`} className="previous-workout-column">
-            <div className="previous-workout-header">
-              {new Date(workout.createdAt).toLocaleDateString()}
+        {/* Previous Workout Column */}
+        {activeWorkout.previousWorkouts?.[0] && (
+          <div className="workout-column">
+            <div className="workout-header">
+              {new Date(activeWorkout.previousWorkouts[0].createdAt).toLocaleDateString()}
             </div>
-            <div className="previous-workout-duration">
-              Duration: {calculateWorkoutDuration(workout)} min
+            <div className="workout-duration">
+              {calculateWorkoutDuration(activeWorkout.previousWorkouts[0])} min
             </div>
-            <div className="previous-sets">
+            <div className="sets-container">
               {activeWorkout.exerciseList.map((exercise, exIndex) => {
-                const prevExercise = workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID);
+                const prevExercise = activeWorkout.previousWorkouts[0].exerciseList?.find(
+                  e => e.exerciseID === exercise.exerciseID
+                );
                 return (
-                  <div key={`prev-ex-${exIndex}`} className="previous-set">
-                    <span className={`status-indicator ${prevExercise?.sets?.[0]?.status || 'pending'}`} />
-                    {prevExercise?.sets?.map((set, setIdx) => (
-                      <React.Fragment key={`prev-set-${setIdx}`}>
-                        {exercise.measurementType === 'weights' && (
-                          <>
-                            <span>{set.values.weight || '-'} lbs</span>
-                            <span>{set.values.reps || '-'} reps</span>
-                          </>
-                        )}
-                        {exercise.measurementType === 'timed' && (
-                          <span>{set.values.time || '-'}</span>
-                        )}
-                        {exercise.measurementType === 'cardio' && (
-                          <span>{set.values.distance || '-'} mi</span>
-                        )}
-                      </React.Fragment>
-                    ))}
+                  <div key={`prev-set-${exIndex}`} className="set-row">
+                    <div className={`status-indicator ${prevExercise?.sets?.[0]?.status || 'pending'}`} />
+                    {exercise.measurementType === 'weights' && (
+                      <>
+                        <span>{prevExercise?.sets?.[0]?.values?.weight || '-'} lbs</span>
+                        <span>{prevExercise?.sets?.[0]?.values?.reps || '-'} reps</span>
+                      </>
+                    )}
+                    {exercise.measurementType === 'timed' && (
+                      <span>{prevExercise?.sets?.[0]?.values?.time || '-'}</span>
+                    )}
+                    {exercise.measurementType === 'cardio' && (
+                      <span>{prevExercise?.sets?.[0]?.values?.distance || '-'} mi</span>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
-        ))}
-        
+        )}
+
         {/* Current Workout Column */}
-        <div className="current-workout-column">
-          <div className="current-workout-header">
-            Current Workout
-          </div>
-          <div className="current-sets">
+        <div className="workout-column">
+          <div className="workout-header">Current Workout</div>
+          <div className="workout-duration">Now</div>
+          <div className="sets-container">
             {activeWorkout.exerciseList.map((exercise, exIndex) => (
-              <div key={`current-ex-${exIndex}`} className="current-set">
+              <div key={`current-set-${exIndex}`} className="set-row">
                 <div 
                   className={`status-indicator ${exercise.sets[0]?.status || 'pending'}`}
                   onClick={() => cycleSetStatus(exIndex, 0)}
                 />
-                {exercise.sets.map((set, setIndex) => (
-                  <React.Fragment key={`current-set-${setIndex}`}>
-                    {exercise.measurementType === 'weights' && (
-                      <>
-                        <input
-                          type="number"
-                          placeholder="Weight"
-                          value={set.values.weight || ''}
-                          onChange={(e) => updateSetValue(exIndex, setIndex, 'weight', e.target.value)}
-                        />
-                        <input
-                          type="number"
-                          placeholder="Reps"
-                          value={set.values.reps || ''}
-                          onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
-                        />
-                      </>
-                    )}
-                    {exercise.measurementType === 'timed' && (
-                      <input
-                        type="text"
-                        placeholder="Time"
-                        value={set.values.time || ''}
-                        onChange={(e) => updateSetValue(exIndex, setIndex, 'time', e.target.value)}
-                      />
-                    )}
-                    {exercise.measurementType === 'cardio' && (
-                      <input
-                        type="number"
-                        placeholder="Distance"
-                        step="0.1"
-                        value={set.values.distance || ''}
-                        onChange={(e) => updateSetValue(exIndex, setIndex, 'distance', e.target.value)}
-                      />
-                    )}
-                  </React.Fragment>
-                ))}
+                {exercise.measurementType === 'weights' && (
+                  <>
+                    <input
+                      type="number"
+                      placeholder="Weight"
+                      value={exercise.sets[0]?.values?.weight || ''}
+                      onChange={(e) => updateSetValue(exIndex, 0, 'weight', e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Reps"
+                      value={exercise.sets[0]?.values?.reps || ''}
+                      onChange={(e) => updateSetValue(exIndex, 0, 'reps', e.target.value)}
+                    />
+                  </>
+                )}
+                {exercise.measurementType === 'timed' && (
+                  <input
+                    type="text"
+                    placeholder="Time"
+                    value={exercise.sets[0]?.values?.time || ''}
+                    onChange={(e) => updateSetValue(exIndex, 0, 'time', e.target.value)}
+                  />
+                )}
+                {exercise.measurementType === 'cardio' && (
+                  <input
+                    type="number"
+                    placeholder="Distance"
+                    step="0.1"
+                    value={exercise.sets[0]?.values?.distance || ''}
+                    onChange={(e) => updateSetValue(exIndex, 0, 'distance', e.target.value)}
+                  />
+                )}
               </div>
             ))}
           </div>
         </div>
 
         {/* Finish Workout Button */}
-        <div className="workout-footer" style={{ gridColumn: '1 / -1' }}>
+        <div className="workout-footer">
           <button onClick={saveWorkoutProgress}>
             Finish Workout
           </button>
