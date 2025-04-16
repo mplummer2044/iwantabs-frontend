@@ -346,74 +346,88 @@ return (
         {/* Previous Workouts Column remains the same */}
 
         {/* Current Workout Column - UPDATED */}
-        <div className="workout-column current">
-          <h3>Current Workout</h3>
-          {activeWorkout.exercises?.length > 0 ? (
-            activeWorkout.exercises.map((exercise, exIndex) => (
-              <div key={exIndex} className="exercise-column">
-                <h4>{exercise.name}</h4>
-                <div className="sets-container">
-                  {exercise.sets.map((set, setIndex) => (
-                    <div key={setIndex} className="set-row">
-                      {/* Status Indicator */}
-                      <div 
-                        className={`status-indicator ${set.status || 'pending'}`}
-                        onClick={() => {
-                          const statuses = ['good', 'medium', 'bad'];
-                          const currentIndex = statuses.indexOf(set.status);
-                          const nextStatus = statuses[(currentIndex + 1) % 3];
-                          updateSetStatus(exIndex, setIndex, nextStatus);
-                        }}
-                      />
-                      
-                      {/* Conditional Input Fields */}
-                      {exercise.measurementType === 'weights' && (
-                        <>
+          <div className="workout-column current">
+            <h3>Current Workout</h3>
+            {activeWorkout?.exerciseList?.length > 0 ? (
+              activeWorkout.exerciseList.map((exercise, exIndex) => (
+                <div key={exIndex} className="exercise-column">
+                  <h4>{exercise.name}</h4>
+                  <div className="sets-container">
+                    {exercise.sets.map((set, setIndex) => (
+                      <div key={setIndex} className="set-row">
+                        {/* Status Indicator */}
+                        <div 
+                          className={`status-indicator ${set.status || 'pending'}`}
+                          onClick={() => cycleSetStatus(exIndex, setIndex)}
+                        />
+                        
+                        {/* Conditional Input Fields */}
+                        {exercise.measurementType === 'weights' && (
+                          <>
+                            <input
+                              type="number"
+                              placeholder="Weight (lbs)"
+                              value={set.values.weight || ''}
+                              onChange={(e) => {
+                                const updatedExercises = [...activeWorkout.exerciseList];
+                                updatedExercises[exIndex].sets[setIndex].values.weight = 
+                                  e.target.value === '' ? null : Number(e.target.value);
+                                setActiveWorkout({...activeWorkout, exerciseList: updatedExercises});
+                              }}
+                            />
+                            <input
+                              type="number"
+                              placeholder="Reps"
+                              value={set.values.reps || ''}
+                              onChange={(e) => {
+                                const updatedExercises = [...activeWorkout.exerciseList];
+                                updatedExercises[exIndex].sets[setIndex].values.reps = 
+                                  e.target.value === '' ? null : Number(e.target.value);
+                                setActiveWorkout({...activeWorkout, exerciseList: updatedExercises});
+                              }}
+                            />
+                          </>
+                        )}
+                        
+                        {exercise.measurementType === 'timed' && (
+                          <input
+                            type="text"
+                            placeholder="Time (e.g., 5:30)"
+                            value={set.values.time || ''}
+                            onChange={(e) => {
+                              const updatedExercises = [...activeWorkout.exerciseList];
+                              updatedExercises[exIndex].sets[setIndex].values.time = e.target.value;
+                              setActiveWorkout({...activeWorkout, exerciseList: updatedExercises});
+                            }}
+                          />
+                        )}
+                        
+                        {exercise.measurementType === 'cardio' && (
                           <input
                             type="number"
-                            placeholder="Weight (lbs)"
-                            value={set.values.weight || ''}
-                            onChange={(e) => updateSetValue(exIndex, setIndex, 'weight', e.target.value)}
+                            placeholder="Distance (miles)"
+                            step="0.1"
+                            value={set.values.distance || ''}
+                            onChange={(e) => {
+                              const updatedExercises = [...activeWorkout.exerciseList];
+                              updatedExercises[exIndex].sets[setIndex].values.distance = 
+                                e.target.value === '' ? null : Number(e.target.value);
+                              setActiveWorkout({...activeWorkout, exerciseList: updatedExercises});
+                            }}
                           />
-                          <input
-                            type="number"
-                            placeholder="Reps"
-                            value={set.values.reps || ''}
-                            onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
-                          />
-                        </>
-                      )}
-                      
-                      {exercise.measurementType === 'timed' && (
-                        <input
-                          type="text"
-                          placeholder="Time (e.g., 5:30)"
-                          value={set.values.time || ''}
-                          onChange={(e) => updateSetValue(exIndex, setIndex, 'time', e.target.value)}
-                        />
-                      )}
-                      
-                      {exercise.measurementType === 'cardio' && (
-                        <input
-                          type="number"
-                          placeholder="Distance (miles)"
-                          step="0.1"
-                          value={set.values.distance || ''}
-                          onChange={(e) => updateSetValue(exIndex, setIndex, 'distance', e.target.value)}
-                        />
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p>No exercises in this workout</p>
-          )}
-          <button onClick={saveWorkoutProgress}>
-            Finish Workout
-          </button>
-        </div>
+              ))
+            ) : (
+              <p>No exercises in this workout</p>
+            )}
+            <button onClick={saveWorkoutProgress}>
+              Finish Workout
+            </button>
+          </div>
       </div>
     )}
 
