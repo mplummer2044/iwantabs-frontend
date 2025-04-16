@@ -142,7 +142,7 @@ const startWorkout = async (template) => {
       workoutID: `workout_${Date.now()}`,
       templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exercises: template.exercises.map(exercise => ({
+      exerciseList: template.exercises.map(exercise => ({  // Changed from exercises to exerciseList
         ...exercise,
         exerciseID: exercise.exerciseID,
         sets: Array(exercise.sets || 1).fill().map(() => ({
@@ -154,14 +154,12 @@ const startWorkout = async (template) => {
           },
           status: 'pending'
         })),
-        // Changed structure here:
         previousStats: previousWorkouts.flatMap(workout => 
           workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
         )
       })),
       previousWorkouts: previousWorkouts.map(workout => ({
         ...workout,
-        // Ensure consistent exerciseList structure
         exerciseList: workout.exerciseList || workout.exercises || []
       }))
     });
@@ -208,7 +206,7 @@ const saveWorkoutProgress = async () => {
       createdAt: activeWorkout.createdAt,
       completedAt: new Date().toISOString(),
       isTemplate: false,
-      exerciseList: activeWorkout.exercises.map(exercise => ({
+      exerciseList: activeWorkout.exercisesList.map(exercise => ({
         name: exercise.name,
         exerciseID: exercise.exerciseID,
         measurementType: exercise.measurementType,
@@ -344,7 +342,7 @@ return (
     {activeWorkout && (
       <div className="workout-grid">
         {/* Previous Workouts Column remains the same */}
-
+      
         {/* Current Workout Column - UPDATED */}
           <div className="workout-column current">
             <h3>Current Workout</h3>
