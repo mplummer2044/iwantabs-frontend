@@ -1,13 +1,97 @@
 /* Excel-like Grid Layout */
 .workout-grid {
   display: grid;
-  grid-template-columns: auto auto 1fr; /* Three columns: exercise name, previous sets, current workout */
+  grid-template-columns: auto 1fr 1fr 1fr;
   gap: 1px;
   margin: 2rem 0;
   background-color: #e0e0e0;
   border: 1px solid #e0e0e0;
 }
 
+.sticky-header {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.exercise-header {
+  padding: 1rem;
+  background: #f5f5f5;
+  font-weight: bold;
+  border-right: 1px solid #e0e0e0;
+}
+
+.previous-workout-column {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  background: white;
+}
+
+.previous-workout-header {
+  padding: 0.5rem;
+  background: #f5f5f5;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.previous-workout-duration {
+  padding: 0.3rem;
+  font-size: 0.8rem;
+  text-align: center;
+  background: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.previous-sets {
+  display: grid;
+  grid-template-rows: repeat(auto-fill, minmax(40px, 1fr));
+}
+
+.previous-set {
+  padding: 0.5rem;
+  display: grid;
+  grid-template-columns: 20px 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.current-workout-column {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.current-workout-header {
+  padding: 0.5rem;
+  background: #f5f5f5;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.current-sets {
+  display: grid;
+  grid-template-rows: repeat(auto-fill, minmax(40px, 1fr));
+}
+
+.current-set {
+  padding: 0.5rem;
+  display: grid;
+  grid-template-columns: 20px 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.workout-footer {
+  padding: 1rem;
+  text-align: right;
+  background: white;
+}
+
+/* Keep all your existing status indicator styles */
+/* Excel-like Grid Layout */
 .workout-column {
   background: white;
   padding: 0;
@@ -23,35 +107,6 @@
   align-items: center;
   position: sticky;
   left: 0;
-}
-
-/* Previous workouts column */
-.previous-sets {
-  display: grid;
-  grid-template-rows: auto;
-  background: white;
-}
-
-.previous-set {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #f0f0f0;
-  display: flex;
-  align-items: center;
-}
-
-/* Current workout column */
-.current-sets {
-  display: grid;
-  grid-template-rows: auto;
-}
-
-.current-set {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #f0f0f0;
-  display: grid;
-  grid-template-columns: 30px 1fr 1fr;
-  gap: 0.5rem;
-  align-items: center;
 }
 
 /* Status indicator */
