@@ -249,27 +249,30 @@ const saveWorkoutProgress = async () => {
   }
 };
 
-  // UI Components Section
-  // ----------------------
-  return (
-    <div className="app">
-      {/* Header Section */}
-      <header className="app-header">
-        <h1>I WANT ABS 🏋️</h1>
-        {user && <button onClick={signOut} className="sign-out-button">Sign Out</button>}
-      </header>
+// UI Components Section
+// ----------------------
+return (
+  <div className="app">
+    {/* Header Section */}
+    <header className="app-header">
+      <h1>I WANT ABS 🏋️</h1>
+      {user && (
+        <button onClick={signOut} className="sign-out-button">
+          Sign Out
+        </button>
+      )}
+    </header>
 
-      {/* Template Creation Interface */}
-      <div className="workout-creator">
-        <h2>Create Workout Template</h2>
-        <input
-          type="text"
-          placeholder="Workout Name"
-          value={currentTemplate.name}
-          onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
-        />
-        
-        
+    {/* Template Creation Interface */}
+    <div className="workout-creator">
+      <h2>Create Workout Template</h2>
+      <input
+        type="text"
+        placeholder="Workout Name"
+        value={currentTemplate.name}
+        onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
+      />
+
       {currentTemplate.exercises.map((exercise, index) => (
         <div key={index} className="exercise-block">
           <input
@@ -280,142 +283,152 @@ const saveWorkoutProgress = async () => {
               exercises[index] = {
                 ...exercises[index],
                 name: e.target.value,
-                // Preserve exerciseID if exists
                 exerciseID: exercise.exerciseID || `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
               };
               setCurrentTemplate({ ...currentTemplate, exercises });
             }}
           />
-            <select
-              value={exercise.measurementType}
-              onChange={(e) => {
-                const exercises = [...currentTemplate.exercises];
-                exercises[index].measurementType = e.target.value;
-                setCurrentTemplate({ ...currentTemplate, exercises });
-              }}
-            >
-              <option value="weights">Weight x Sets x Reps</option>
-              <option value="cardio">Distance</option>
-              <option value="timed">Time</option>
-            </select>
-            <button
-              onClick={() => {
-                const exercises = currentTemplate.exercises.filter((_, i) => i !== index);
-                setCurrentTemplate({ ...currentTemplate, exercises });
-              }}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        
-        <button onClick={() => setCurrentTemplate({
+          <input
+            type="number"
+            placeholder="Sets"
+            min="1"
+            value={exercise.sets}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index].sets = Math.max(1, parseInt(e.target.value) || 1);
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          />
+          <select
+            value={exercise.measurementType}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index].measurementType = e.target.value;
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          >
+            <option value="weights">Weight x Sets x Reps</option>
+            <option value="cardio">Distance</option>
+            <option value="timed">Time</option>
+          </select>
+          <button
+            onClick={() => {
+              const exercises = currentTemplate.exercises.filter((_, i) => i !== index);
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+
+      <button
+        onClick={() => setCurrentTemplate({
           ...currentTemplate,
           exercises: [...currentTemplate.exercises, { 
             name: '', 
             measurementType: 'weights',
             sets: 1
           }]
-        })}>
-          Add Exercise
-        </button>
-        
-        <button onClick={createWorkoutTemplate}>Save Template</button>
-      </div>
+        })}
+      >
+        Add Exercise
+      </button>
+      
+      <button onClick={createWorkoutTemplate}>
+        Save Template
+      </button>
+    </div>
 
-      {/* Active Workout Interface */}
-        {activeWorkout && (
-          <div className="workout-grid">
-            {/* Previous Workouts Column */}
-            <div className="workout-column previous">
-              <h3>Previous Workouts</h3>
-              {activeWorkout.previousWorkouts?.map((workout, i) => (
-                <div key={i} className="previous-workout">
-                  <h4>{new Date(workout.createdAt).toLocaleDateString()}</h4>
-                  {workout.exerciseList?.map((exercise, exIdx) => (
-                    <div key={exIdx} className="exercise-history">
-                      <h5>{exercise.name}</h5>
-                      {exercise.sets?.map((set, setIdx) => (
-                        <div key={setIdx} className="set-history">
-                          {Object.entries(set.values || {}).map(([key, val]) => (
-                            val && <span key={key}>{key}: {val}</span>
-                          ))}
-                        </div>
+    {/* Active Workout Interface */}
+    {activeWorkout && (
+      <div className="workout-grid">
+        {/* Previous Workouts Column */}
+        <div className="workout-column previous">
+          <h3>Previous Workouts</h3>
+          {activeWorkout.previousWorkouts?.map((workout, i) => (
+            <div key={i} className="previous-workout">
+              <h4>{new Date(workout.createdAt).toLocaleDateString()}</h4>
+              {workout.exerciseList?.map((exercise, exIdx) => (
+                <div key={exIdx} className="exercise-history">
+                  <h5>{exercise.name}</h5>
+                  {exercise.sets?.map((set, setIdx) => (
+                    <div key={setIdx} className="set-history">
+                      {Object.entries(set.values || {}).map(([key, val]) => (
+                        val && <span key={key}>{key}: {val}</span>
                       ))}
                     </div>
                   ))}
                 </div>
               ))}
             </div>
+          ))}
+        </div>
 
-
-    {/* Current Workout Column - UPDATED VERSION */}
-    <div className="workout-column current">
-      <h3>Current Workout</h3>
-      {activeWorkout?.exercises?.length > 0 ? (
-        activeWorkout.exercises.map((exercise, exIndex) => (
-          <div key={exIndex} className="exercise-column">
-            <h4>{exercise.name}</h4>
-            <div className="sets-container">
-              {exercise.sets.map((set, setIndex) => (
-                <div key={setIndex} className="set-row">
-                  {/* Status Indicator */}
-                  <div 
-                    className={`status-indicator ${set.status || 'pending'}`}
-                    onClick={() => {
-                      const statuses = ['good', 'medium', 'bad'];
-                      const currentIndex = statuses.indexOf(set.status);
-                      const nextStatus = statuses[(currentIndex + 1) % 3];
-                      updateSetStatus(exIndex, setIndex, nextStatus);
-                    }}
-                  />
-                  
-                  {/* Weight Input */}
-                  <input
-                    type="number"
-                    placeholder="Weight"
-                    value={set.values.weight || ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const updatedExercises = [...activeWorkout.exercises];
-                      updatedExercises[exIndex].sets[setIndex].values.weight = 
-                        value === '' ? null : Number(value);
-                      setActiveWorkout({...activeWorkout, exercises: updatedExercises});
-                    }}
-                  />
-                  
-                  {/* Reps Input */}
-                  <input
-                    type="number"
-                    placeholder="Reps"
-                    value={set.values.reps || ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const updatedExercises = [...activeWorkout.exercises];
-                      updatedExercises[exIndex].sets[setIndex].values.reps = 
-                        value === '' ? null : Number(value);
-                      setActiveWorkout({...activeWorkout, exercises: updatedExercises});
-                    }}
-                  />
+        {/* Current Workout Column */}
+        <div className="workout-column current">
+          <h3>Current Workout</h3>
+          {activeWorkout.exercises?.length > 0 ? (
+            activeWorkout.exercises.map((exercise, exIndex) => (
+              <div key={exIndex} className="exercise-column">
+                <h4>{exercise.name}</h4>
+                <div className="sets-container">
+                  {exercise.sets.map((set, setIndex) => (
+                    <div key={setIndex} className="set-row">
+                      <div 
+                        className={`status-indicator ${set.status || 'pending'}`}
+                        onClick={() => {
+                          const statuses = ['good', 'medium', 'bad'];
+                          const currentIndex = statuses.indexOf(set.status);
+                          const nextStatus = statuses[(currentIndex + 1) % 3];
+                          updateSetStatus(exIndex, setIndex, nextStatus);
+                        }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Weight"
+                        value={set.values.weight || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const updatedExercises = [...activeWorkout.exercises];
+                          updatedExercises[exIndex].sets[setIndex].values.weight = 
+                            value === '' ? null : Number(value);
+                          setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                        }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Reps"
+                        value={set.values.reps || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const updatedExercises = [...activeWorkout.exercises];
+                          updatedExercises[exIndex].sets[setIndex].values.reps = 
+                            value === '' ? null : Number(value);
+                          setActiveWorkout({...activeWorkout, exercises: updatedExercises});
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        ))
-      ) : (
-        <p>No exercises in this workout</p>
-      )}
-      <button onClick={saveWorkoutProgress}>Finish Workout</button>
-    </div>
-  </div>
-)}
+              </div>
+            ))
+          ) : (
+            <p>No exercises in this workout</p>
+          )}
+          <button onClick={saveWorkoutProgress}>
+            Finish Workout
+          </button>
+        </div>
+      </div>
+    )}
 
-      {/* Workout History Section */}
-      <div className="workout-history">
-        <h2>Workout History</h2>
-        {workoutHistory.map(workout => (
-          <div key={workout.workoutID} className="workout-log">
-            <div className="workout-header">
+    {/* Workout History Section */}
+    <div className="workout-history">
+      <h2>Workout History</h2>
+      {workoutHistory.map(workout => (
+        <div key={workout.workoutID} className="workout-log">
+          <div className="workout-header">
             <h3>{new Date(workout.createdAt).toLocaleDateString()}</h3>
             {workout.templateID && (
               <small>
@@ -425,38 +438,37 @@ const saveWorkoutProgress = async () => {
               </small>
             )}
           </div>
-            {workout.exercises?.map((exercise, exIndex) => (
-              <div key={exIndex} className="exercise-history">
-                <h5>{exercise.name}</h5>
-                {exercise.sets?.map((set, setIndex) => (
-                  <div key={setIndex} className="set-history">
-                    {set.values && Object.entries(set.values).map(([key, value]) => (
-                      <span key={key}>{key}: {value ?? 'N/A'}</span>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {/* Template List Section */}
-      <div className="template-list">
-        <h2>Your Workout Templates</h2>
-        {workoutTemplates.map(template => (
-          <div key={template.templateID} className="template-card">
-            {/* Use template.name with safety checks */}
-            <h3>{template?.name || "Unnamed Template"}</h3>
-            <button onClick={() => startWorkout(template)}>
-              Start Workout
-            </button>
-            <p>Exercises: {(template?.exercises || []).length}</p>
-          </div>
-        ))}
-      </div>
+          {workout.exercises?.map((exercise, exIndex) => (
+            <div key={exIndex} className="exercise-history">
+              <h5>{exercise.name}</h5>
+              {exercise.sets?.map((set, setIndex) => (
+                <div key={setIndex} className="set-history">
+                  {set.values && Object.entries(set.values).map(([key, value]) => (
+                    <span key={key}>{key}: {value ?? 'N/A'}</span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
-  );
+
+    {/* Template List Section */}
+    <div className="template-list">
+      <h2>Your Workout Templates</h2>
+      {workoutTemplates.map(template => (
+        <div key={template.templateID} className="template-card">
+          <h3>{template?.name || "Unnamed Template"}</h3>
+          <button onClick={() => startWorkout(template)}>
+            Start Workout
+          </button>
+          <p>Exercises: {(template?.exercises || []).length}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 }
 
 export default withAuthenticator(App);
