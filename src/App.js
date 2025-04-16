@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
@@ -348,20 +349,20 @@ return (
     
     {/* Exercise Rows */}
     {activeWorkout.exerciseList?.map((exercise, exIndex) => (
-      <React.Fragment key={exIndex}>
+      <>
         {/* Exercise Name Column */}
-        <div className="exercise-header">
+        <div className="exercise-header" key={`name-${exIndex}`}>
           {exercise.name}
         </div>
         
         {/* Previous Sets Column */}
-        <div className="previous-sets">
+        <div className="previous-sets" key={`prev-${exIndex}`}>
           {activeWorkout.previousWorkouts?.map((workout, i) => {
             const prevExercise = workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID);
             return (
-              <div key={i} className="previous-set">
+              <div key={`prev-set-${i}`} className="previous-set">
                 {prevExercise?.sets?.map((set, setIdx) => (
-                  <span key={setIdx} className={`status-indicator ${set.status || 'pending'}`} />
+                  <span key={`status-${setIdx}`} className={`status-indicator ${set.status || 'pending'}`} />
                 ))}
               </div>
             );
@@ -369,9 +370,9 @@ return (
         </div>
         
         {/* Current Sets Column */}
-        <div className="current-sets">
+        <div className="current-sets" key={`current-${exIndex}`}>
           {exercise.sets.map((set, setIndex) => (
-            <div key={setIndex} className="current-set">
+            <div key={`set-${setIndex}`} className="current-set">
               <div 
                 className={`status-indicator ${set.status || 'pending'}`}
                 onClick={() => cycleSetStatus(exIndex, setIndex)}
@@ -415,7 +416,7 @@ return (
             </div>
           ))}
         </div>
-      </React.Fragment>
+      </>
     ))}
     
     {/* Finish Workout Button */}
