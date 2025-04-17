@@ -1,3 +1,28 @@
+/* Add to App.css */
+.exercise-row {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.set-container {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+.set-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  min-width: 120px;
+}
+
 /* Workout Grid Container */
 .workout-grid {
   display: grid;
@@ -51,11 +76,9 @@
 
 /* Set Cells */
 .set-cell {
-  padding: 0.8rem;
-  background: white;
-  border-bottom: 1px solid #f0f0f0;
-  display: flex;
-  align-items: center;
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 
 /* Status Indicator */
@@ -98,4 +121,11 @@
   .set-cell:nth-child(3n) {
     display: none;
   }
+}
+
+.compact-input {
+  width: 50px;
+  padding: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
