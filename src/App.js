@@ -347,104 +347,112 @@ return (
 
     {/* Active Workout Interface */}
     {activeWorkout && (
-      <div className="workout-grid">
-        {/* Column Headers */}
-        <div className="column-header">Exercises</div>
-        <div className="column-header">
-          {activeWorkout.previousWorkouts?.[0] ? 
-            new Date(activeWorkout.previousWorkouts[0].createdAt).toLocaleDateString() : 
-            'Previous Workout'}
+  <div className="workout-grid">
+    {/* Column Headers */}
+    <div className="column-header">Exercises</div>
+    <div className="column-header">
+      {activeWorkout.previousWorkouts?.[0] ? 
+        new Date(activeWorkout.previousWorkouts[0].createdAt).toLocaleDateString() : 
+        'Previous Workout'}
+    </div>
+    <div className="column-header">Current Workout</div>
+
+    {/* Exercise Groups */}
+    {activeWorkout.exerciseList.map((exercise, exIndex) => (
+      <div key={`ex-group-${exIndex}`} className="exercise-group">
+        {/* Exercise Name */}
+        <div className="exercise-name-header">
+          {exercise.name}
+          <div style={{ fontSize: '0.8rem', color: '#666' }}>
+            {exercise.measurementType === 'weights' ? 'Weight x Reps' : 
+             exercise.measurementType === 'timed' ? 'Time' : 'Distance'}
+          </div>
         </div>
-        <div className="column-header">Current Workout</div>
 
-        {/* Exercise Rows */}
-        {activeWorkout.exerciseList.map((exercise, exIndex) => (
-          <div key={`ex-${exIndex}`} className="exercise-row">
-            {/* Exercise Name */}
-            <div className="exercise-name-cell">
-              <div className="exercise-name">{exercise.name}</div>
-              <div className="exercise-type">
-                {exercise.measurementType === 'weights' ? 'Weight x Reps' : 
-                exercise.measurementType === 'timed' ? 'Time' : 'Distance'}
-              </div>
-            </div>
-
-            {/* Previous Workout Sets */}
-            <div className="set-cell">
-              {activeWorkout.previousWorkouts?.[0]?.exerciseList
-                ?.find(e => e.exerciseID === exercise.exerciseID)?.sets
-                ?.map((set, setIndex) => (
-                  <div key={`prev-set-${setIndex}`} style={{ marginBottom: '0.5rem' }}>
-                    <span className={`status-indicator ${set.status || 'pending'}`} />
-                    {exercise.measurementType === 'weights' && (
-                      <span>{set.values.weight || '-'} lbs × {set.values.reps || '-'} reps</span>
-                    )}
-                    {exercise.measurementType === 'timed' && (
-                      <span>{set.values.time || '-'}</span>
-                    )}
-                    {exercise.measurementType === 'cardio' && (
-                      <span>{set.values.distance || '-'} mi</span>
-                    )}
-                  </div>
-                ))}
-            </div>
-
-            {/* Current Workout Sets */}
-            <div className="set-cell">
-              {exercise.sets.map((set, setIndex) => (
-                <div key={`current-set-${setIndex}`} style={{ marginBottom: '0.5rem' }}>
-                  <div 
-                    className={`status-indicator ${set.status || 'pending'}`}
-                    onClick={() => cycleSetStatus(exIndex, setIndex)}
-                  />
+        {/* Previous Workout Sets */}
+        <div className="set-rows">
+          {activeWorkout.previousWorkouts?.[0]?.exerciseList
+            ?.find(e => e.exerciseID === exercise.exerciseID)?.sets
+            ?.map((set, setIndex) => (
+              <div key={`prev-set-${setIndex}`} className="set-row">
+                <div className="set-cell">
+                  <span className={`status-indicator ${set.status || 'pending'}`} />
+                </div>
+                <div className="set-cell">
                   {exercise.measurementType === 'weights' && (
-                    <>
-                      <input
-                        type="number"
-                        placeholder="Weight"
-                        value={set.values.weight || ''}
-                        onChange={(e) => updateSetValue(exIndex, setIndex, 'weight', e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Reps"
-                        value={set.values.reps || ''}
-                        onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
-                        style={{ marginLeft: '0.5rem' }}
-                      />
-                    </>
+                    <span>{set.values.weight || '-'} lbs × {set.values.reps || '-'} reps</span>
                   )}
                   {exercise.measurementType === 'timed' && (
-                    <input
-                      type="text"
-                      placeholder="Time"
-                      value={set.values.time || ''}
-                      onChange={(e) => updateSetValue(exIndex, setIndex, 'time', e.target.value)}
-                    />
+                    <span>{set.values.time || '-'}</span>
                   )}
                   {exercise.measurementType === 'cardio' && (
-                    <input
-                      type="number"
-                      placeholder="Distance"
-                      step="0.1"
-                      value={set.values.distance || ''}
-                      onChange={(e) => updateSetValue(exIndex, setIndex, 'distance', e.target.value)}
-                    />
+                    <span>{set.values.distance || '-'} mi</span>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-        ))}
+              </div>
+            ))}
+        </div>
 
-        {/* Finish Workout Button */}
-        <div className="workout-footer">
-          <button onClick={saveWorkoutProgress}>
-            Finish Workout
-          </button>
+        {/* Current Workout Sets */}
+        <div className="set-rows">
+          {exercise.sets.map((set, setIndex) => (
+            <div key={`current-set-${setIndex}`} className="set-row">
+              <div className="set-cell">
+                <div 
+                  className={`status-indicator ${set.status || 'pending'}`}
+                  onClick={() => cycleSetStatus(exIndex, setIndex)}
+                />
+              </div>
+              <div className="set-cell">
+                {exercise.measurementType === 'weights' && (
+                  <>
+                    <input
+                      type="number"
+                      placeholder="Weight"
+                      value={set.values.weight || ''}
+                      onChange={(e) => updateSetValue(exIndex, setIndex, 'weight', e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Reps"
+                      value={set.values.reps || ''}
+                      onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
+                      style={{ marginLeft: '0.5rem' }}
+                    />
+                  </>
+                )}
+                {exercise.measurementType === 'timed' && (
+                  <input
+                    type="text"
+                    placeholder="Time"
+                    value={set.values.time || ''}
+                    onChange={(e) => updateSetValue(exIndex, setIndex, 'time', e.target.value)}
+                  />
+                )}
+                {exercise.measurementType === 'cardio' && (
+                  <input
+                    type="number"
+                    placeholder="Distance"
+                    step="0.1"
+                    value={set.values.distance || ''}
+                    onChange={(e) => updateSetValue(exIndex, setIndex, 'distance', e.target.value)}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    )}
+    ))}
+
+    {/* Finish Workout Button */}
+    <div style={{ gridColumn: '1 / -1', padding: '1rem', textAlign: 'right', background: 'white' }}>
+      <button onClick={saveWorkoutProgress}>
+        Finish Workout
+      </button>
+    </div>
+  </div>
+)}
 
     {/* Workout History Section */}
     <div className="workout-history">
