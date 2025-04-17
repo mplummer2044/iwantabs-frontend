@@ -349,104 +349,106 @@ return (
     {activeWorkout && (
   <div className="workout-grid">
     {/* Column Headers */}
-    <div className="column-header">Exercises</div>
-    <div className="column-header">
-      {activeWorkout.previousWorkouts?.[0] ? 
-        new Date(activeWorkout.previousWorkouts[0].createdAt).toLocaleDateString() : 
-        'Previous Workout'}
-    </div>
-    <div className="column-header">Current Workout</div>
+    <div className="grid-header">Exercise</div>
+    {activeWorkout.previousWorkouts.map((workout, index) => (
+      <div key={`prev-header-${index}`} className="grid-header">
+        {new Date(workout.createdAt).toLocaleDateString()}
+      </div>
+    ))}
+    <div className="grid-header">Current Workout</div>
 
     {/* Exercise Rows */}
     {activeWorkout.exerciseList.map((exercise, exIndex) => (
-      <div key={`ex-${exIndex}`} className="exercise-row">
+      <div className="exercise-row" key={exIndex}>
         {/* Exercise Name */}
-        <div className="exercise-name-cell">
-          <div className="exercise-name">{exercise.name}</div>
-          <div className="exercise-type">
-            {exercise.measurementType === 'weights' ? 'Weight x Reps' : 
+        <div className="grid-cell exercise-header">
+          {exercise.name}
+          <div className="text-muted small">
+            {exercise.measurementType === 'weights' ? 'Weight × Reps' : 
              exercise.measurementType === 'timed' ? 'Time' : 'Distance'}
           </div>
         </div>
 
-        {/* Previous Workout Sets */}
-        <div className="set-cell">
-          <div className="set-container">
-            {activeWorkout.previousWorkouts?.[0]?.exerciseList
-              ?.find(e => e.exerciseID === exercise.exerciseID)?.sets
-              ?.map((set, setIndex) => (
-                <div key={`prev-set-${setIndex}`} className="set-item">
-                  <span className={`status-indicator ${set.status || 'pending'}`} />
-                  {exercise.measurementType === 'weights' && (
-                    <span>{set.values.weight || '-'}×{set.values.reps || '-'}</span>
-                  )}
-                  {exercise.measurementType === 'timed' && (
-                    <span>{set.values.time || '-'}</span>
-                  )}
-                  {exercise.measurementType === 'cardio' && (
-                    <span>{set.values.distance || '-'}mi</span>
-                  )}
+        {/* Previous Workouts Columns */}
+        {activeWorkout.previousWorkouts.map((workout, workoutIndex) => (
+          <div key={`prev-${workoutIndex}`} className="previous-sets-column">
+            {workout.exerciseList
+              .find(e => e.exerciseID === exercise.exerciseID)
+              ?.sets?.map((set, setIndex) => (
+                <div key={`set-${setIndex}`} className="grid-cell">
+                  <div className="d-flex align-items-center gap-2">
+                    <span className={`status-indicator ${set.status}`} />
+                    {exercise.measurementType === 'weights' && (
+                      <span>{set.values.weight || '-'} × {set.values.reps || '-'}</span>
+                    )}
+                    {exercise.measurementType === 'timed' && (
+                      <span>{set.values.time || '-'}</span>
+                    )}
+                    {exercise.measurementType === 'cardio' && (
+                      <span>{set.values.distance || '-'} mi</span>
+                    )}
+                  </div>
                 </div>
               ))}
           </div>
-        </div>
+        ))}
 
-        {/* Current Workout Sets */}
-        <div className="set-cell">
-          <div className="set-container">
-            {exercise.sets.map((set, setIndex) => (
-              <div key={`current-set-${setIndex}`} className="set-item">
-                <div 
-                  className={`status-indicator ${set.status || 'pending'}`}
+        {/* Current Workout Inputs */}
+        <div className="current-sets-column">
+          {exercise.sets.map((set, setIndex) => (
+            <div key={`current-set-${setIndex}`} className="grid-cell">
+              <div className="d-flex align-items-center gap-2">
+                <span 
+                  className={`status-indicator ${set.status}`}
                   onClick={() => cycleSetStatus(exIndex, setIndex)}
                 />
                 {exercise.measurementType === 'weights' && (
                   <>
                     <input
                       type="number"
-                      placeholder="W"
+                      className="current-set-input"
+                      placeholder="Weight"
                       value={set.values.weight || ''}
                       onChange={(e) => updateSetValue(exIndex, setIndex, 'weight', e.target.value)}
-                      className="compact-input"
                     />
                     <input
                       type="number"
-                      placeholder="R"
+                      className="current-set-input"
+                      placeholder="Reps"
                       value={set.values.reps || ''}
                       onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
-                      className="compact-input"
                     />
                   </>
                 )}
                 {exercise.measurementType === 'timed' && (
                   <input
                     type="text"
+                    className="current-set-input"
                     placeholder="Time"
                     value={set.values.time || ''}
                     onChange={(e) => updateSetValue(exIndex, setIndex, 'time', e.target.value)}
-                    className="compact-input"
                   />
                 )}
                 {exercise.measurementType === 'cardio' && (
                   <input
                     type="number"
-                    placeholder="Dist"
+                    className="current-set-input"
                     step="0.1"
+                    placeholder="Distance"
                     value={set.values.distance || ''}
                     onChange={(e) => updateSetValue(exIndex, setIndex, 'distance', e.target.value)}
-                    className="compact-input"
                   />
                 )}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     ))}
 
-    {/* Finish Workout Button */}
-    <div className="workout-footer">
-      <button onClick={saveWorkoutProgress}>
+    {/* Finish Button */}
+    <div className="grid-cell" style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
+      <button onClick={saveWorkoutProgress} className="btn btn-primary">
         Finish Workout
       </button>
     </div>

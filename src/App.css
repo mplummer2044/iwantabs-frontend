@@ -1,9 +1,56 @@
 /* Add to App.css */
-.exercise-row {
+.workout-grid {
   display: grid;
-  grid-template-columns: auto 1fr 1fr;
+  grid-template-columns: auto repeat(auto-fit, minmax(200px, 1fr));
+  border: 1px solid #e0e0e0;
+  margin: 2rem 0;
+}
+
+.grid-header {
+  background: #f8f9fa;
+  padding: 1rem;
+  font-weight: bold;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.grid-cell {
+  padding: 0.75rem;
+  border-bottom: 1px solid #dee2e6;
   background: white;
-  border-bottom: 1px solid #e0e0e0;
+}
+
+.exercise-row {
+  display: contents;
+}
+
+.set-row {
+  display: contents;
+}
+
+.exercise-header {
+  grid-column: 1;
+  position: sticky;
+  left: 0;
+  background: #f8f9fa;
+  z-index: 1;
+}
+
+.current-set-input {
+  width: 100%;
+  padding: 0.25rem;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+}
+
+.status-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid #dee2e6;
 }
 
 .set-container {
@@ -23,18 +70,6 @@
   min-width: 120px;
 }
 
-/* Workout Grid Container */
-.workout-grid {
-  display: grid;
-  grid-template-columns: auto 1fr 1fr; /* Three columns: exercise name, previous, current */
-  gap: 1px;
-  margin: 2rem 0;
-  background-color: #e0e0e0;
-  border: 1px solid #e0e0e0;
-  width: 100%;
-  overflow-x: auto;
-}
-
 /* Column Headers */
 .column-header {
   background: #f5f5f5;
@@ -44,24 +79,6 @@
   position: sticky;
   top: 0;
   z-index: 3;
-}
-
-/* Exercise Row */
-.exercise-row {
-  display: contents;
-}
-
-.exercise-name-cell {
-  grid-column: 1;
-  background: #f5f5f5;
-  padding: 1rem;
-  font-weight: bold;
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  flex-direction: column;
 }
 
 .exercise-name {
@@ -79,16 +96,6 @@
   padding: 0;
   border: none;
   background: transparent;
-}
-
-/* Status Indicator */
-.status-indicator {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #ddd;
-  cursor: pointer;
-  margin-right: 0.5rem;
 }
 
 .status-indicator.good { background: #4CAF50; }
