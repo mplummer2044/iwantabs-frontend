@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { withAuthenticator } from '@aws-amplify/ui-react';
@@ -350,7 +349,6 @@ return (
     {activeWorkout && (
   <div className="workout-grid">
     {/* Column Headers */}
-    <div className="grid-header">Exercise</div>
     {activeWorkout.previousWorkouts.map((workout, index) => (
       <div key={`prev-header-${index}`} className="grid-header">
         {new Date(workout.createdAt).toLocaleDateString()}

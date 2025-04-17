@@ -1,7 +1,10 @@
-/* Add to App.css */
+/* App.css - Cleaned Version */
+
+/* Base Grid Styles */
 .workout-grid {
   display: grid;
-  grid-template-columns: auto repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
   border: 1px solid #e0e0e0;
   margin: 2rem 0;
 }
@@ -10,9 +13,6 @@
   background: #f8f9fa;
   padding: 1rem;
   font-weight: bold;
-  position: sticky;
-  left: 0;
-  z-index: 2;
   border-bottom: 1px solid #dee2e6;
 }
 
@@ -22,22 +22,19 @@
   background: white;
 }
 
+/* Exercise Row Styles */
 .exercise-row {
   display: contents;
 }
 
-.set-row {
-  display: contents;
-}
-
 .exercise-header {
-  grid-column: 1;
   position: sticky;
   left: 0;
   background: #f8f9fa;
   z-index: 1;
 }
 
+/* Set Input Styles */
 .current-set-input {
   width: 100%;
   padding: 0.25rem;
@@ -45,6 +42,7 @@
   border-radius: 0.25rem;
 }
 
+/* Status Indicator Styles */
 .status-indicator {
   width: 20px;
   height: 20px;
@@ -53,171 +51,17 @@
   border: 1px solid #dee2e6;
 }
 
-.set-container {
-  display: flex;
-  gap: 1rem;
-  padding: 0.5rem;
-  overflow-x: auto;
-}
-
-.set-item {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-  min-width: 120px;
-}
-
-/* Column Headers */
-.column-header {
-  background: #f5f5f5;
-  font-weight: bold;
-  padding: 1rem;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 3;
-}
-
-.exercise-name {
-  font-size: 1rem;
-}
-
-.exercise-type {
-  font-size: 0.8rem;
-  color: #666;
-  margin-top: 0.3rem;
-}
-
-/* Set Cells */
-.set-cell {
-  padding: 0;
-  border: none;
-  background: transparent;
-}
-
 .status-indicator.good { background: #4CAF50; }
 .status-indicator.medium { background: #FFC107; }
 .status-indicator.bad { background: #F44336; }
 
-/* Input Fields */
-.set-cell input {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 80%;
-}
-
-/* Workout Footer */
-.workout-footer {
-  grid-column: 1 / -1;
-  padding: 1rem;
-  text-align: right;
-  background: white;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .workout-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .previous-workouts {
-    grid-template-columns: 1fr;
-  }
-  
-  .exercise-block {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* App.css additions */
-.workout-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.workout-column {
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.previous {
-  grid-column: span 2;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  background: #f8f9fa;
-}
-
-.current {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.exercise-column {
-  margin-bottom: 15px;
-}
-
-.set-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 5px;
-}
-
-/* Nested set rows */
-.sets-container {
-  margin-top: 10px;
-  border-left: 3px solid #eee;
-  padding-left: 15px;
-}
-
-.exercise-column {
-  margin-bottom: 1.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.set-row {
-  display: grid;
-  grid-template-columns: 30px 1fr 1fr;
-  gap: 1rem;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.set-row:last-child {
-  border-bottom: none;
-}
-
-.status-indicator {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.status-indicator.good { background: #4CAF50; }
-.status-indicator.medium { background: #FFC107; }
-.status-indicator.bad { background: #F44336; }
-
-.set-row input {
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-/* Add these to maintain grid layout */
+/* Column Styles */
 .previous-sets-column, 
 .current-sets-column {
   display: contents;
 }
 
+/* Utility Classes */
 .d-flex {
   display: flex;
 }
@@ -247,4 +91,42 @@
 .btn-primary {
   background-color: #0d6efd;
   color: white;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .workout-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .exercise-header {
+    position: static;
+  }
+}
+
+/* Exercise Block Styles */
+.exercise-column {
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 30px 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.set-row:last-child {
+  border-bottom: none;
+}
+
+.set-row input {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
