@@ -121,18 +121,93 @@
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .workout-grid {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr;
   }
   
-  .column-header:nth-child(3),
-  .set-cell:nth-child(3n) {
-    display: none;
+  .previous-workouts {
+    grid-template-columns: 1fr;
+  }
+  
+  .exercise-block {
+    grid-template-columns: 1fr;
   }
 }
 
-.compact-input {
-  width: 50px;
-  padding: 4px;
+/* App.css additions */
+.workout-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.workout-column {
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.previous {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: #f8f9fa;
+}
+
+.current {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.exercise-column {
+  margin-bottom: 15px;
+}
+
+.set-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+/* Nested set rows */
+.sets-container {
+  margin-top: 10px;
+  border-left: 3px solid #eee;
+  padding-left: 15px;
+}
+
+.exercise-column {
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 30px 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.set-row:last-child {
+  border-bottom: none;
+}
+
+.status-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.status-indicator.good { background: #4CAF50; }
+.status-indicator.medium { background: #FFC107; }
+.status-indicator.bad { background: #F44336; }
+
+.set-row input {
+  padding: 6px;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
