@@ -30,18 +30,36 @@
   border-bottom: 2px solid #eee;
 }
 
+/* Exercise name cell - spans full height of all sets */
+.exercise-cell {
+  grid-column: 1;
+  background: white;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid #eee;
+}
+
+/* Set rows - span columns 2 and 3 */
 .set-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* Only for columns 2 and 3 */
+  grid-column: 2 / 4; /* Span from column 2 to 4 */
   background: white;
   border-bottom: 1px solid #eee;
 }
 
-.exercise-cell, .previous-cell, .current-cell {
+.previous-cell, .current-cell {
   padding: 0.8rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* Align the first set row with the exercise cell */
+.exercise-cell:first-child {
+  grid-row: span var(--sets-count, 1); /* You'll need to set this dynamically */
 }
 
 .set-number {
@@ -53,6 +71,8 @@
   color: #666;
   font-size: 0.9em;
 }
+
+
 
 .previous-set {
   display: flex;

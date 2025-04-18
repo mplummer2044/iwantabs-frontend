@@ -378,25 +378,30 @@ return (
     <div className="header-cell">Current Workout</div>
 
     {/* Exercise Rows */}
-    {activeWorkout.exerciseList.map((exercise, exIndex) => (
-      <div key={exIndex} className="exercise-group">
-        {/* Exercise Name Header */}
-        <div className="exercise-header-cell">{exercise.name}</div>
-        <div className="previous-cell"></div>
-        <div className="current-cell"></div>
-
-        {/* Sets */}
-        {exercise.sets.map((set, setIndex) => (
-          <div key={setIndex} className="set-row">
-            <div className="exercise-cell">
-              <span className="set-number">Set {setIndex + 1}</span>
+    {activeWorkout.exerciseList.map((exercise, exIndex) => {
+      const setsCount = exercise.sets.length;
+      return (
+        <div key={exIndex} className="exercise-group" style={{ '--sets-count': setsCount }}>
+          {/* Exercise Header */}
+          <div className="exercise-header-cell">{exercise.name}</div>
+          
+          {/* Exercise Details (left column) */}
+          <div className="exercise-cell">
+            <div>
               <span className="exercise-type">
                 ({exercise.measurementType === 'weights' ? 'Weight × Reps' : 
-                 exercise.measurementType === 'timed' ? 'Time' : 'Distance'})
+                exercise.measurementType === 'timed' ? 'Time' : 'Distance'})
               </span>
+              {exercise.sets.map((_, setIndex) => (
+                <div key={setIndex} className="set-number">Set {setIndex + 1}</div>
+              ))}
             </div>
-
-            <div className="previous-cell">
+          </div>
+          
+          {/* Sets (right two columns) */}
+          {exercise.sets.map((set, setIndex) => (
+            <div key={setIndex} className="set-row">
+              <div className="previous-cell">
               {activeWorkout.previousWorkouts?.[0]?.exerciseList
                 ?.find(e => e.exerciseID === exercise.exerciseID)?.sets?.[setIndex] && (
                 <div className="previous-set">
@@ -454,11 +459,12 @@ return (
                   />
                 )}
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    ))}
+              </div>
+        </div>
+      ))}
+    </div>
+  );
+})}
 
     <div className="footer-cell">
       <button onClick={saveWorkoutProgress}>Finish Workout</button>
