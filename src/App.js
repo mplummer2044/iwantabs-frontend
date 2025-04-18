@@ -189,6 +189,26 @@ const updateSetValue = (exerciseIndex, setIndex, field, value) => {
   setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
 };
 
+// Add this function before the return statement
+const renderSetValues = (measurementType, values) => {
+  if (!values) return null;
+  
+  switch (measurementType) {
+    case 'weights':
+      return (
+        <span>
+          {values.weight || '-'} × {values.reps || '-'}
+        </span>
+      );
+    case 'timed':
+      return <span>{values.time || '-'}</span>;
+    case 'cardio':
+      return <span>{values.distance || '-'} mi</span>;
+    default:
+      return null;
+  }
+};
+
 const saveWorkoutProgress = async () => {
   try {
     if (!activeWorkout) {
