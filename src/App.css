@@ -136,3 +136,23 @@ input {
     grid-column: 1;
   }
 }
+
+/* In your App.css */
+input[type="text"] {
+  font-size: 16px; /* Prevent mobile zoom */
+}
+
+@media (max-width: 768px) {
+  input {
+    min-height: 44px; /* Better touch target */
+    font-size: 16px; /* Prevent zoom */
+  }
+  
+  .weight-reps input {
+    max-width: 60px; /* Smaller inputs on mobile */
+  }
+  
+  input[placeholder="MM:SS"] {
+    min-width: 80px; /* Enough space for time input */
+  }
+}

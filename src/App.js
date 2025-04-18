@@ -182,10 +182,52 @@ const cycleSetStatus = (exerciseIndex, setIndex) => {
   updateSetStatus(exerciseIndex, setIndex, newStatus);
 };
 
+const formatTimeInput = (value) => {
+  if (!value) return '';
+  
+  // Ensure proper MM:SS format
+  const parts = value.split(':');
+  if (parts.length === 1 && parts[0].length > 2) {
+    return `${parts[0].substring(0, 2)}:${parts[0].substring(2)}`;
+  }
+  return value;
+};
+
+const validateTimeInput = (value) => {
+  return /^[0-9]{0,2}:?[0-9]{0,2}$/.test(value);
+};
+
 const updateSetValue = (exerciseIndex, setIndex, field, value) => {
   const updatedExercises = [...activeWorkout.exerciseList];
-  updatedExercises[exerciseIndex].sets[setIndex].values[field] = 
-    value === '' ? null : Number(value);
+  
+  // Special handling for time fields
+  if (field === 'time') {
+    // Allow only numbers and colons
+    const cleanedValue = value.replace(/[^0-9:]/g, '');
+    
+    // Ensure maximum of one colon
+    const colonCount = cleanedValue.split(':').length - 1;
+    let finalValue = colonCount > 1 
+      ? cleanedValue.replace(/:/g, '').replace(/(\d{2})(\d{2})/, '$1:$2')
+      : cleanedValue;
+    
+    // Auto-format as MM:SS if typing numbers
+    if (!finalValue.includes(':') && finalValue.length > 2) {
+      finalValue = finalValue.replace(/(\d{2})(\d{0,2})/, '$1:$2');
+    }
+    
+    // Limit to MM:SS format (max 5 chars - 00:00)
+    if (finalValue.length > 5) {
+      finalValue = finalValue.substring(0, 5);
+    }
+    
+    updatedExercises[exerciseIndex].sets[setIndex].values[field] = finalValue || null;
+  } else {
+    // Original handling for other fields
+    updatedExercises[exerciseIndex].sets[setIndex].values[field] = 
+      value === '' ? null : Number(value);
+  }
+  
   setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
 };
 
@@ -444,9 +486,11 @@ return (
                 {exercise.measurementType === 'timed' && (
                   <input
                     type="text"
-                    placeholder="Time"
+                    placeholder="MM:SS"
                     value={set.values.time || ''}
                     onChange={(e) => updateSetValue(exIndex, setIndex, 'time', e.target.value)}
+                    inputMode="numeric"
+                    pattern="[0-9:]*"
                   />
                 )}
                 {exercise.measurementType === 'cardio' && (
