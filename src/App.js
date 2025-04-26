@@ -14,10 +14,18 @@ function App({ signOut, user }) {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
 
+  useEffect(() => {
+    if (currentExerciseIndex < 0) {
+      setCurrentExerciseIndex(0);
+    }
+    if (currentExerciseIndex >= activeWorkout?.exerciseList?.length) {
+      setCurrentExerciseIndex(activeWorkout.exerciseList.length - 1);
+    }
+  }, [currentExerciseIndex, activeWorkout]);
+
   //Swipe Handlers
   const handleTouchStart = (e) => {
     if (activeWorkout) {
-      e.preventDefault();
       setTouchStartY(e.touches[0].clientY);
     }
   };
@@ -25,19 +33,36 @@ function App({ signOut, user }) {
   const handleTouchEnd = (e) => {
     if (!activeWorkout) return;
     
-    e.preventDefault();
     const touchEndY = e.changedTouches[0].clientY;
-    const deltaY = touchEndY - touchStartY;
+    const deltaY = touchStartY - touchEndY; // Invert for natural swipe direction
   
-    if (Math.abs(deltaY) > 50 && !e.target.closest('input')) {
-      if (deltaY > 0) { // Swipe down
-        setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
-      } else { // Swipe up
+    // Reduced threshold for better sensitivity
+    if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
+      if (deltaY > 0) { // Swipe up
         setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
+      } else { // Swipe down
+        setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
       }
     }
-    setTouchStartY(0);
   };
+
+  // Add this with your other swipe handlers
+// Right after handleTouchEnd function
+const handleTouchMove = (e) => {
+  if (activeWorkout) {
+    if (e.target.closest('input')) {
+      return;
+    }
+    e.preventDefault();
+  }
+};
+
+// Then modify your workout-grid div JSX:
+<div className="workout-grid" 
+     onTouchStart={handleTouchStart}
+     onTouchEnd={handleTouchEnd}
+     onTouchMove={handleTouchMove}  // Add this line
+     style={{ display: 'block' }}></div>
 
   // Track workout templates and active workout session
   const [workoutTemplates, setWorkoutTemplates] = useState([]);
@@ -462,7 +487,8 @@ return (
           className="exercise-card"
           style={{ 
             transform: `translateY(${(exIndex - currentExerciseIndex) * 100}%)`,
-            zIndex: exIndex === currentExerciseIndex ? 1 : 0 
+            zIndex: Math.abs(exIndex - currentExerciseIndex) * -1,
+            opacity: exIndex === currentExerciseIndex ? 1 : 0.5
           }}
         >
           {/* Exercise Header */}

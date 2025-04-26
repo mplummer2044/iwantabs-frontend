@@ -139,16 +139,24 @@ input {
     background: white;
   }
 
-  .exercise-card-container {
-    height: calc(100vh - 120px);
-    width: 100vw;
-  }
-
   .exercise-card {
-    width: 100vw;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    position: absolute;
+    width: 100%;
+    height: calc(100vh - 120px); /* Match container height */
+    top: 0;
+    left: 0;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    background: white;
     padding: 20px;
-    box-shadow: none;
-    border-radius: 0;
+    will-change: transform;
+  }
+  
+  .exercise-card-container {
+    position: relative;
+    height: calc(100vh - 120px);
+    overflow: hidden;
   }
 
   .exercise-header-cell {
