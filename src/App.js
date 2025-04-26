@@ -414,6 +414,16 @@ return (
     <div className="header-cell">Exercises</div>
     <div className="header-cell">Previous</div>
     <div className="header-cell">Current</div>
+    <div className="header-cell">
+  {activeWorkout.previousWorkouts?.[0]?.createdAt ? 
+    `Previous - ${new Date(activeWorkout.previousWorkouts[0].createdAt)
+      .toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'numeric', 
+        day: 'numeric' 
+      })}` : 
+    'Previous Workout'}
+</div>
 
     {/* Exercise Rows */}
     {activeWorkout.exerciseList.map((exercise, exIndex) => (
@@ -440,7 +450,18 @@ return (
     </div>
 
         {/* Previous Workout Column */}
-        <div className="previous-cell" data-label="Previous Workout">
+        <div 
+          className="previous-cell" 
+          data-label={
+            activeWorkout.previousWorkouts?.[0]?.createdAt ? 
+            `Previous (${new Date(activeWorkout.previousWorkouts[0].createdAt)
+              .toLocaleDateString('en-US', { 
+                month: 'numeric', 
+                day: 'numeric' 
+              })})` : 
+            'Previous Workout'
+          }
+        >
           {exercise.sets.map((_, setIndex) => (
             <div key={setIndex} className="set-data">
               {activeWorkout.previousWorkouts?.[0]?.exerciseList
