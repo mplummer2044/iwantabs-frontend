@@ -421,16 +421,23 @@ return (
         {/* Exercise Name Header */}
         <div className="exercise-header-cell">{exercise.name}</div>
         
-        {/* Exercise Details Column */}
-        <div className="exercise-cell">
-          <div className="exercise-type">
-            {exercise.measurementType === 'weights' ? 'W×R' : 
-             exercise.measurementType === 'timed' ? 'Time' : 'Dist'}
-          </div>
-          {exercise.sets.map((_, setIndex) => (
-            <div key={setIndex} className="set-number">Set {setIndex + 1}</div>
-          ))}
-        </div>
+    {/* Exercise Details Column */}
+    <div className="exercise-cell">
+      <div className="exercise-type">
+        {exercise.measurementType === 'weights' ? 'W×R' : 
+        exercise.measurementType === 'timed' ? 'Time' : 'Dist'}
+      </div>
+      {/* Desktop set numbers */}
+      <div className="desktop-sets">
+        {exercise.sets.map((_, setIndex) => (
+          <div key={setIndex} className="set-number">Set {setIndex + 1}</div>
+        ))}
+      </div>
+      {/* Mobile set count */}
+      <div className="mobile-sets">
+        {exercise.sets.length} {exercise.sets.length === 1 ? 'Set' : 'Sets'}
+      </div>
+    </div>
 
         {/* Previous Workout Column */}
         <div className="previous-cell" data-label="Previous Workout">

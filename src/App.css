@@ -68,8 +68,13 @@
 }
 
 .set-number {
-  font-weight: 500;
-  margin-right: 0.5rem;
+  font-size: 0.9em;
+  color: #666;
+  margin: 2px 0;
+}
+
+.desktop-sets {
+  margin-top: 0.5rem;
 }
 
 .exercise-type {
@@ -125,6 +130,12 @@ input {
   border-top: 2px solid #eee;
 }
 
+.mobile-sets {
+  display: none;
+  color: #666;
+  font-size: 0.9em;
+}
+
 @media (max-width: 768px) {
   .workout-grid {
     display: block; /* Switch to block layout for mobile */
@@ -132,6 +143,21 @@ input {
     width: 100%;
     min-width: auto;
   }
+
+  .desktop-sets {
+    display: none;
+  }
+  
+  .mobile-sets {
+    display: block;
+    margin-top: 0.5rem;
+  }
+  
+  .exercise-cell {
+    min-height: auto;
+    padding: 0.8rem 0.5rem;
+  }
+}
 
   .header-cell {
     display: none; /* Hide column headers on mobile */
@@ -207,5 +233,12 @@ input {
     background: white;
     padding: 1rem;
     box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+  }
+
+
+/* Keep desktop layout */
+@media (min-width: 769px) {
+  .mobile-sets {
+    display: none;
   }
 }
