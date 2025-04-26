@@ -138,11 +138,59 @@ input {
 
 @media (max-width: 768px) {
   .workout-grid {
-    display: block; /* Switch to block layout for mobile */
-    overflow-x: visible;
-    width: 100%;
-    min-width: auto;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    position: relative;
   }
+
+  .exercise-card-container {
+    height: calc(100vh - 120px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .exercise-card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    background: white;
+    transition: transform 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .exercise-nav-dots {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    transition: all 0.3s ease;
+  }
+
+  .nav-dot.active {
+    background: #4CAF50;
+    transform: scale(1.2);
+  }
+
+  .footer-cell {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+
 
   .desktop-sets {
     display: none;
