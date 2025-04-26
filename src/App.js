@@ -13,63 +13,8 @@ function App({ signOut, user }) {
   // State Variables
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
-
-  useEffect(() => {
-    if (currentExerciseIndex < 0) {
-      setCurrentExerciseIndex(0);
-    }
-    if (currentExerciseIndex >= activeWorkout?.exerciseList?.length) {
-      setCurrentExerciseIndex(activeWorkout.exerciseList.length - 1);
-    }
-  }, [currentExerciseIndex, activeWorkout]);
-
-  //Swipe Handlers
-  const handleTouchStart = (e) => {
-    if (activeWorkout) {
-      setTouchStartY(e.touches[0].clientY);
-    }
-  };
-  
-  const handleTouchEnd = (e) => {
-    if (!activeWorkout) return;
-    
-    const touchEndY = e.changedTouches[0].clientY;
-    const deltaY = touchStartY - touchEndY; // Invert for natural swipe direction
-  
-    // Reduced threshold for better sensitivity
-    if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
-      if (deltaY > 0) { // Swipe up
-        setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
-      } else { // Swipe down
-        setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
-      }
-    }
-  };
-
-  // Add this with your other swipe handlers
-// Right after handleTouchEnd function
-const handleTouchMove = (e) => {
-  if (activeWorkout) {
-    if (e.target.closest('input')) {
-      return;
-    }
-    e.preventDefault();
-  }
-};
-
-// Then modify your workout-grid div JSX:
-<div className="workout-grid" 
-     onTouchStart={handleTouchStart}
-     onTouchEnd={handleTouchEnd}
-     onTouchMove={handleTouchMove}  // Add this line
-     style={{ display: 'block' }}></div>
-
-  // Track workout templates and active workout session
   const [workoutTemplates, setWorkoutTemplates] = useState([]);
-  const [activeWorkout, setActiveWorkout] = useState(null);
-
-  
-  // Manage template creation form state
+  const [activeWorkout, setActiveWorkout] = useState(null); // MOVE THIS UP
   const [currentTemplate, setCurrentTemplate] = useState({
     name: '',
     exercises: [{
@@ -79,6 +24,37 @@ const handleTouchMove = (e) => {
       previousStats: null
     }]
   });
+  // ...rest of state declarations
+
+// Swipe Handlers
+const handleTouchStart = (e) => {
+  if (activeWorkout) {
+    setTouchStartY(e.touches[0].clientY);
+  }
+};
+
+const handleTouchEnd = (e) => {
+  if (!activeWorkout) return;
+  
+  const touchEndY = e.changedTouches[0].clientY;
+  const deltaY = touchStartY - touchEndY;
+
+  if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
+    if (deltaY > 0) {
+      setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
+    } else {
+      setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
+    }
+  }
+};
+
+// Add this right after handleTouchEnd
+const handleTouchMove = (e) => {
+  if (activeWorkout) {
+    if (e.target.closest('input')) return;
+    e.preventDefault();
+  }
+};
   
   // Track workout history and loading states
   const [workoutHistory, setWorkoutHistory] = useState([]);
@@ -468,7 +444,8 @@ return (
   <div className="workout-grid" 
        onTouchStart={handleTouchStart}
        onTouchEnd={handleTouchEnd}
-       style={{ display: 'block' }}> {/* Override any grid display */}
+       onTouchMove={handleTouchMove}  // Add this prop
+       style={{ display: 'block' }}>
     {/* Navigation Dots */}
     <div className="exercise-nav-dots">
       {activeWorkout.exerciseList.map((_, index) => (
