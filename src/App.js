@@ -16,14 +16,19 @@ function App({ signOut, user }) {
 
   //Swipe Handlers
   const handleTouchStart = (e) => {
-    setTouchStartY(e.touches[0].clientY);
+    if (activeWorkout) {
+      e.preventDefault();
+      setTouchStartY(e.touches[0].clientY);
+    }
   };
   
   const handleTouchEnd = (e) => {
+    if (!activeWorkout) return;
+    
+    e.preventDefault();
     const touchEndY = e.changedTouches[0].clientY;
     const deltaY = touchEndY - touchStartY;
-    
-    // Only trigger swipe if not interacting with inputs
+  
     if (Math.abs(deltaY) > 50 && !e.target.closest('input')) {
       if (deltaY > 0) { // Swipe down
         setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
@@ -434,10 +439,11 @@ return (
     </div>
 
     {/* Active Workout Interface */}
-{activeWorkout && (
+    {activeWorkout && (
   <div className="workout-grid" 
        onTouchStart={handleTouchStart}
-       onTouchEnd={handleTouchEnd}>
+       onTouchEnd={handleTouchEnd}
+       style={{ display: 'block' }}> {/* Override any grid display */}
     {/* Navigation Dots */}
     <div className="exercise-nav-dots">
       {activeWorkout.exerciseList.map((_, index) => (
