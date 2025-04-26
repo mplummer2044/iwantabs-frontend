@@ -127,45 +127,85 @@ input {
 
 @media (max-width: 768px) {
   .workout-grid {
-    display: grid;
-    grid-template-columns: 100px 1fr 1fr; /* Three columns on mobile too */
-    width: max-content; /* Forces grid to expand beyond viewport */
-    min-width: 100%; /* Ensures it takes at least full width */
+    display: block; /* Switch to block layout for mobile */
+    overflow-x: visible;
+    width: 100%;
+    min-width: auto;
   }
-  
+
   .header-cell {
-    padding: 0.5rem;
-    font-size: 0.9rem;
+    display: none; /* Hide column headers on mobile */
   }
-  
+
+  .exercise-header-cell {
+    background: #f5f5f5;
+    margin-top: 1rem;
+    border-radius: 4px;
+    font-size: 1.1rem;
+  }
+
+  /* Create a card-like layout for each exercise */
+  .exercise-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
   .exercise-cell,
   .previous-cell,
   .current-cell {
+    grid-column: 1;
+    width: 100%;
     padding: 0.5rem;
-    font-size: 0.9rem;
+    min-height: auto;
+    display: block;
   }
-  
-  /* Make cells taller on mobile for better touch */
-  .previous-cell,
-  .current-cell {
-    min-height: 60px;
+
+  .previous-cell::before,
+  .current-cell::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #666;
+  }
+
+  .set-data,
+  .current-set {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
   }
-  
-  /* Adjust input sizes */
-  input {
-    max-width: 60px;
-    font-size: 14px;
-  }
-  
-  .weight-reps input {
-    max-width: 50px;
-  }
-  
-  /* Status indicator larger for mobile */
+
   .status-indicator {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
+    margin-right: 0.5rem;
+  }
+
+  input {
+    max-width: 100%;
+    width: 100%;
+    padding: 0.5rem;
+  }
+
+  .weight-reps {
+    gap: 0.5rem;
+  }
+
+  .footer-cell {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 1rem;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
   }
 }

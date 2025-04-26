@@ -433,7 +433,7 @@ return (
         </div>
 
         {/* Previous Workout Column */}
-        <div className="previous-cell">
+        <div className="previous-cell" data-label="Previous Workout">
           {exercise.sets.map((_, setIndex) => (
             <div key={setIndex} className="set-data">
               {activeWorkout.previousWorkouts?.[0]?.exerciseList
@@ -455,7 +455,7 @@ return (
         </div>
 
         {/* Current Workout Column */}
-        <div className="current-cell">
+        <div className="current-cell" data-label="Current Workout">
           {exercise.sets.map((set, setIndex) => (
             <div key={setIndex} className="current-set">
               <div 
