@@ -217,16 +217,23 @@ const cycleSetStatus = (exerciseIndex, setIndex) => {
 const formatTimeInput = (value) => {
   if (!value) return '';
   
-  // Ensure proper MM:SS format
-  const parts = value.split(':');
-  if (parts.length === 1 && parts[0].length > 2) {
-    return `${parts[0].substring(0, 2)}:${parts[0].substring(2)}`;
+  // Remove non-numeric characters except colon
+  let cleaned = value.replace(/[^0-9:]/g, '');
+  
+  // Handle backspace/delete
+  if (cleaned.length < value.length) return cleaned;
+  
+  // Auto-insert colon after 2 digits
+  if (cleaned.length === 2 && !cleaned.includes(':')) {
+    return cleaned + ':';
   }
-  return value;
+  
+  // Prevent more than 5 characters (00:00)
+  return cleaned.substring(0, 5);
 };
 
 const validateTimeInput = (value) => {
-  return /^[0-9]{0,2}:?[0-9]{0,2}$/.test(value);
+  return /^([0-5]?\d)(:[0-5]?\d)?$/.test(value); // More accurate validation
 };
 
 const updateSetValue = (exerciseIndex, setIndex, field, value) => {
@@ -347,6 +354,7 @@ const calculateWorkoutDuration = (workout) => {
   const end = new Date(workout.completedAt);
   return Math.round((end - start) / (1000 * 60)); // Returns minutes
 };
+
 
 // UI Components Section
 // ----------------------
@@ -525,7 +533,29 @@ return (
                     />
                   </div>
                 )}
-                {/* Other input types... */}
+                {exercise.measurementType === 'timed' && (
+                  <div className="time-input">
+                    <input
+                      type="text"
+                      placeholder="MM:SS"
+                      value={set.values.time || ''}
+                      onChange={(e) => {
+                        const formatted = formatTimeInput(e.target.value);
+                        if (validateTimeInput(formatted)) {
+                          updateSetValue(exIndex, setIndex, 'time', formatted);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                {exercise.measurementType === 'cardio' && (
+                  <input
+                    type="number"
+                    placeholder="Miles"
+                    value={set.values.distance || ''}
+                    onChange={(e) => updateSetValue(exIndex, setIndex, 'distance', e.target.value)}
+                  />
+                )}
               </div>
             ))}
           </div>

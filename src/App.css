@@ -128,6 +128,11 @@ input {
   font-size: 0.9em;
 }
 
+.time-input input {
+  max-width: 120px;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .workout-grid {
     height: 100vh;
@@ -167,6 +172,11 @@ input {
   .previous-cell::before,
   .current-cell::before {
     font-size: 1.1rem;
+  }
+
+  .time-input input {
+    width: 100%;
+    max-width: none;
   }
 
   /* Disable body scroll when workout active */
