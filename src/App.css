@@ -58,13 +58,40 @@
 .exercise-card {
   width: 100%;
   height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .exercise-card-container {
-  height: 100%;
+  height: calc(100% - 120px); /* Account for header and footer */
   position: relative;
   overflow: hidden;
+}
+
+/* Previous and Current Workout Sections */
+.previous-cell {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px 0;
+}
+
+.current-cell {
+  flex: 2;
+  overflow-y: auto;
+  padding: 15px 0;
+}
+
+.exercise-header-cell {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 15px;
 }
 
 /* Navigation Dots */
@@ -112,31 +139,21 @@ input {
 
 /* Mobile Optimization */
 @media (max-width: 768px) {
-  .active-workout {
-    .workout-grid {
-      top: 60px;
-      height: calc(100vh - 60px - 70px);
-      padding: 0 0 70px;
-    }
-
-    .exercise-nav-dots {
-      top: 70px;
-    }
+  .exercise-card-container {
+    height: calc(100% - 100px);
   }
-
+  
   .exercise-card {
-    height: 100%;
-    transform: none !important;
+    padding: 10px;
   }
-
+  
+  .exercise-nav-dots {
+    top: 50px;
+    padding: 10px 0;
+  }
+  
   .footer-cell {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 1rem;
-    background: white;
-    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    padding: 15px;
   }
 }
 
