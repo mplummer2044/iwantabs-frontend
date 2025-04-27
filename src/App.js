@@ -411,17 +411,20 @@ return (
               setCurrentTemplate({ ...currentTemplate, exercises });
             }}
           />
-          <input
-            type="number"
-            placeholder="Sets"
-            min="1"
+          <select
             value={exercise.sets}
             onChange={(e) => {
               const exercises = [...currentTemplate.exercises];
-              exercises[index].sets = Math.max(1, parseInt(e.target.value) || 1);
+              exercises[index].sets = parseInt(e.target.value);
               setCurrentTemplate({ ...currentTemplate, exercises });
             }}
-          />
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+              <option key={num} value={num}>
+                {num} Set{num !== 1 ? 's' : ''}
+              </option>
+            ))}
+          </select>
           <select
             value={exercise.measurementType}
             onChange={(e) => {
@@ -552,7 +555,6 @@ return (
                     />
                   </div>
                 )}
-                // In your exercise card component
                 {exercise.measurementType === 'bodyweight' && (
                   <div className="weight-reps">
                     <input
