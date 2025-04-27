@@ -15,6 +15,7 @@ function App({ signOut, user }) {
   const [touchStartY, setTouchStartY] = useState(0);
   const [workoutTemplates, setWorkoutTemplates] = useState([]);
   const [activeWorkout, setActiveWorkout] = useState(null); // MOVE THIS UP
+  const [reps, setReps] = useState('');
   const [currentTemplate, setCurrentTemplate] = useState({
     name: '',
     exercises: [{
@@ -429,9 +430,10 @@ return (
               setCurrentTemplate({ ...currentTemplate, exercises });
             }}
           >
-            <option value="weights">Weight x Sets x Reps</option>
-            <option value="cardio">Distance</option>
+            <option value="weights">Weight × Sets × Reps</option>
+            <option value="bodyweight">Bodyweight (Reps)</option>
             <option value="timed">Time</option>
+            <option value="cardio">Distance</option>
           </select>
           <button
             onClick={() => {
@@ -496,7 +498,9 @@ return (
             {exercise.name}
             <div className="exercise-type">
               {exercise.measurementType === 'weights' ? 'Weight × Reps' : 
-               exercise.measurementType === 'timed' ? 'Time' : 'Distance'}
+              exercise.measurementType === 'timed' ? 'Time' :
+              exercise.measurementType === 'bodyweight' ? 'Reps' : 
+              'Distance'}
             </div>
           </div>
 
@@ -550,11 +554,19 @@ return (
                 )}
                 // In your exercise card component
                 {exercise.measurementType === 'bodyweight' && (
-                  <RepsInput 
-                    value={reps}
-                    onChange={setReps}
-                    previousStats={previousWorkout?.reps} 
-                  />
+                  <div className="weight-reps">
+                    <input
+                      type="number"
+                      placeholder="Reps"
+                      value={exercise.sets[setIndex]?.values?.reps || ''}
+                      onChange={(e) => updateSetValue(exIndex, setIndex, 'reps', e.target.value)}
+                    />
+                    {activeWorkout.previousWorkouts?.[0]?.exerciseList
+                      ?.find(e => e.exerciseID === exercise.exerciseID)?.sets?.[setIndex]?.values?.reps && (
+                      <p>Last: {activeWorkout.previousWorkouts[0].exerciseList
+                        .find(e => e.exerciseID === exercise.exerciseID).sets[setIndex].values.reps} reps</p>
+                    )}
+                  </div>
                 )}
 
                 {exercise.measurementType === 'timed' && (
