@@ -24,9 +24,8 @@
   bottom: 0;
   background: white;
   z-index: 150;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  /* Change from opacity to display none */
+  display: none;
 }
 
 /* Active Workout Modifiers */
@@ -42,6 +41,7 @@
   .workout-grid {
     opacity: 1;
     pointer-events: all;
+    display: block;
   }
 
   /* Compact header */

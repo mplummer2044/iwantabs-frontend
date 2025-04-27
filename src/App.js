@@ -469,8 +469,7 @@ return (
   <div className="workout-grid" 
        onTouchStart={handleTouchStart}
        onTouchEnd={handleTouchEnd}
-       onTouchMove={handleTouchMove}  // Add this prop
-       style={{ display: 'block' }}>
+       onTouchMove={handleTouchMove}>
     {/* Navigation Dots */}
     <div className="exercise-nav-dots">
       {activeWorkout.exerciseList.map((_, index) => (
