@@ -487,8 +487,8 @@ return (
           className="exercise-card"
           style={{ 
             transform: `translateY(${(exIndex - currentExerciseIndex) * 100}%)`,
-            zIndex: Math.abs(exIndex - currentExerciseIndex) * -1,
-            opacity: exIndex === currentExerciseIndex ? 1 : 0.5
+            zIndex: activeWorkout.exerciseList.length - Math.abs(exIndex - currentExerciseIndex),
+            opacity: exIndex === currentExerciseIndex ? 1 : 0
           }}
         >
           {/* Exercise Header */}
