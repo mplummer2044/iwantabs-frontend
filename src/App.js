@@ -261,6 +261,25 @@ const updateSetValue = (exerciseIndex, setIndex, field, value) => {
         }
       }
     }
+
+    // NEW: Autofill logic for weight in first set
+    if (field === 'weight' && setIndex === 0 && updatedExercises[exerciseIndex].measurementType === 'weights') {
+      const baseWeight = value === '' ? null : Number(value);
+      
+      if (baseWeight !== null) {
+        // Calculate +5 per subsequent set
+        updatedExercises[exerciseIndex].sets.forEach((set, idx) => {
+          if (idx > 0) {
+            set.values.weight = baseWeight + (5 * idx);
+          }
+        });
+      } else {
+        // Clear subsequent weights if first is empty
+        updatedExercises[exerciseIndex].sets.forEach((set, idx) => {
+          if (idx > 0) set.values.weight = null;
+        });
+      }
+    }
   }
   
   setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
