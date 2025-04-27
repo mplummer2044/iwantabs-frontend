@@ -222,18 +222,24 @@ const formatTimeInput = (value) => {
   
   // Handle backspace/delete
   if (cleaned.length < value.length) return cleaned;
-  
+
   // Auto-insert colon after 2 digits
   if (cleaned.length === 2 && !cleaned.includes(':')) {
     return cleaned + ':';
   }
   
+  // If user types past 2 digits without colon, auto-format
+  if (cleaned.length > 2 && !cleaned.includes(':')) {
+    cleaned = cleaned.slice(0, 2) + ':' + cleaned.slice(2);
+  }
+
   // Prevent more than 5 characters (00:00)
   return cleaned.substring(0, 5);
 };
 
 const validateTimeInput = (value) => {
-  return /^([0-5]?\d)(:[0-5]?\d)?$/.test(value); // More accurate validation
+  // Allow intermediate formats during typing
+  return /^\d{0,2}:?\d{0,2}$/.test(value);
 };
 
 const updateSetValue = (exerciseIndex, setIndex, field, value) => {
@@ -241,26 +247,7 @@ const updateSetValue = (exerciseIndex, setIndex, field, value) => {
   
   // Special handling for time fields
   if (field === 'time') {
-    // Allow only numbers and colons
-    const cleanedValue = value.replace(/[^0-9:]/g, '');
-    
-    // Ensure maximum of one colon
-    const colonCount = cleanedValue.split(':').length - 1;
-    let finalValue = colonCount > 1 
-      ? cleanedValue.replace(/:/g, '').replace(/(\d{2})(\d{2})/, '$1:$2')
-      : cleanedValue;
-    
-    // Auto-format as MM:SS if typing numbers
-    if (!finalValue.includes(':') && finalValue.length > 2) {
-      finalValue = finalValue.replace(/(\d{2})(\d{0,2})/, '$1:$2');
-    }
-    
-    // Limit to MM:SS format (max 5 chars - 00:00)
-    if (finalValue.length > 5) {
-      finalValue = finalValue.substring(0, 5);
-    }
-    
-    updatedExercises[exerciseIndex].sets[setIndex].values[field] = finalValue || null;
+    updatedExercises[exerciseIndex].sets[setIndex].values[field] = value || null;
   } else {
     // Original handling for other fields
     updatedExercises[exerciseIndex].sets[setIndex].values[field] = 
