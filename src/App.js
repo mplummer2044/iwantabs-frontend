@@ -374,7 +374,7 @@ const calculateWorkoutDuration = (workout) => {
 // UI Components Section
 // ----------------------
 return (
-  <div className={`app ${activeWorkout ? 'active-workout' : ''}`}>
+  <div className="app">
     {/* Always show header */}
     <header className="app-header">
       <h1>I WANT ABS 🏋️</h1>
@@ -469,7 +469,8 @@ return (
   <div className="workout-grid" 
        onTouchStart={handleTouchStart}
        onTouchEnd={handleTouchEnd}
-       onTouchMove={handleTouchMove}>
+       onTouchMove={handleTouchMove}  // Add this prop
+       style={{ display: 'block' }}>
     {/* Navigation Dots */}
     <div className="exercise-nav-dots">
       {activeWorkout.exerciseList.map((_, index) => (
