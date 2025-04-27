@@ -6,13 +6,16 @@
   background: white;
   position: sticky;
   top: 0;
-  z-index: 1;
+  background: white;
+  z-index: 2;
 }
 
 /* In App.css */
 .calendar-container {
   margin-bottom: 2rem;
   min-height: 300px; /* Prevent collapse */
+  position: relative;
+  z-index: 0;
 }
 
 .calendar-grid {
