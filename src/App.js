@@ -39,6 +39,7 @@ const handleTouchEnd = (e) => {
   const touchEndY = e.changedTouches[0].clientY;
   const deltaY = touchStartY - touchEndY;
 
+  // Only handle vertical swipes
   if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
     if (deltaY > 0) {
       setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
@@ -48,10 +49,9 @@ const handleTouchEnd = (e) => {
   }
 };
 
-// Add this right after handleTouchEnd
 const handleTouchMove = (e) => {
   if (activeWorkout) {
-    if (e.target.closest('input')) return;
+    // Prevent horizontal scroll
     e.preventDefault();
   }
 };
