@@ -1,5 +1,34 @@
+/* Add to your CSS */
+.app-header {
+  position: relative;
+  z-index: 200;
+}
+
 .workout-grid {
-  overflow-x: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 150;
+}
+
+/* Hide other content when workout is active */
+.workout-creator,
+.workout-history,
+.template-list {
+  display: none;
+}
+
+/* When workout is active, make header smaller */
+.active-workout .app-header {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  position: fixed;
+  width: 100%;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .exercise-card {
@@ -130,11 +159,28 @@ input {
 }
 
 @media (max-width: 768px) {
+  /* Adjust the workout grid to start below the header */
   .workout-grid {
-    height: 100vh;
-    /* Add padding for nav dots and footer */
-    padding: 70px 0 60px;
+    top: 50px; /* Header height + nav dots spacing */
+    height: calc(100vh - 50px - 60px); /* Account for header and footer */
+    padding: 0 0 60px; /* Remove top padding since positioning is handled by top */
   }
+
+  /* Position the navigation dots below the header */
+  .exercise-nav-dots {
+    top: 60px; /* Adjust based on header height and desired spacing */
+  }
+
+  /* Ensure the exercise card takes full available height */
+  .exercise-card-container {
+    height: 100%;
+  }
+
+  /* Explicitly set the header height when active */
+  .active-workout .app-header {
+    height: 50px; /* Adjust based on your header's actual height */
+  }
+}
 
   .exercise-card {
     height: 100%; /* Fill available space */
@@ -143,12 +189,6 @@ input {
     top: 0;
     left: 0;
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .exercise-card-container {
-    height: 100%;
-    position: relative;
-    overflow: hidden;
   }
 
 
@@ -174,17 +214,6 @@ input {
   /* Disable body scroll when workout active */
   body {
     overflow: hidden;
-  }
-}
-
-  .exercise-nav-dots {
-    position: fixed;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 8px;
-    z-index: 100;
   }
 
   .nav-dot {

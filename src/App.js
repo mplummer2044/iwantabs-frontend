@@ -375,7 +375,7 @@ const calculateWorkoutDuration = (workout) => {
 // ----------------------
 return (
   <div className="app">
-    {/* Header Section */}
+    {/* Always show header */}
     <header className="app-header">
       <h1>I WANT ABS 🏋️</h1>
       {user && (
@@ -384,6 +384,8 @@ return (
         </button>
       )}
     </header>
+
+    
 
     {/* Template Creation Interface */}
     <div className="workout-creator">
