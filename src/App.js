@@ -548,6 +548,15 @@ return (
                     />
                   </div>
                 )}
+                // In your exercise card component
+                {exercise.measurementType === 'bodyweight' && (
+                  <RepsInput 
+                    value={reps}
+                    onChange={setReps}
+                    previousStats={previousWorkout?.reps} 
+                  />
+                )}
+
                 {exercise.measurementType === 'timed' && (
                   <div className="time-input">
                     <input
