@@ -374,7 +374,7 @@ const calculateWorkoutDuration = (workout) => {
 // UI Components Section
 // ----------------------
 return (
-  <div className="app">
+  <div className={`app ${activeWorkout ? 'active-workout' : ''}`}>
     {/* Always show header */}
     <header className="app-header">
       <h1>I WANT ABS 🏋️</h1>
