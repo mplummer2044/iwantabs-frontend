@@ -3,9 +3,10 @@
 }
 
 .exercise-card {
-  overflow: hidden !important;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
 .header-cell {
@@ -139,16 +140,17 @@ input {
     background: white;
   }
 
-  .exercise-card {
-    transform: none !important;
-    height: calc(100vh - 120px);
-    overflow: hidden;
+  .exercise-card-container {
     position: relative;
+    height: 100%;
+    overflow: hidden;
   }
   
-  .exercise-card-container {
-    overflow: hidden;
+  .exercise-card {
+    width: 100%;
     height: 100%;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
   }
 
   .exercise-header-cell {
