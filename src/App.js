@@ -112,9 +112,9 @@ const handleTouchMove = (e) => {
       });
       
       // Sort history by date descending
-      const sortedHistory = (res.data.history || []).sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      );
+  const sortedHistory = (res.data.history || []).sort((a, b) => 
+    new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
+  );
   
       setWorkoutTemplates(res.data.templates || []);
       setWorkoutHistory(sortedHistory);
@@ -397,6 +397,11 @@ const CalendarView = ({ workouts }) => {
   const monthEnd = endOfMonth(selectedMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  // Add fallback to createdAt if date field doesn't exist
+  const normalizeWorkoutDate = (workout) => {
+    return workout.date || workout.createdAt;
+  };
+
   return (
     <div className="calendar-container">
       <div className="month-header">
@@ -410,10 +415,13 @@ const CalendarView = ({ workouts }) => {
       </div>
       <div className="calendar-grid">
         {daysInMonth.map(day => {
-          const hasWorkout = workouts.some(workout => 
-            isSameMonth(new Date(workout.date), selectedMonth) && // Changed from createdAt to date
-            format(new Date(workout.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-          );
+          const hasWorkout = workouts.some(workout => {
+            const workoutDate = normalizeWorkoutDate(workout);
+            return (
+              isSameMonth(new Date(workoutDate), selectedMonth) &&
+              format(new Date(workoutDate), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+            );
+          });
           
           return (
             <div key={day} className={`calendar-day ${!isSameMonth(day, selectedMonth) ? 'other-month' : ''}`}>
@@ -461,7 +469,14 @@ return (
 
     <div className="main-content">
     {activeView === 'home' && (
-      <>
+  <>
+    <div className="calendar-container">
+      {loading ? (
+        <div className="calendar-loading">Loading calendar...</div>
+      ) : (
+        <CalendarView workouts={workoutHistory} />
+      )}
+    </div>
         <div className="calendar-container">
           <CalendarView workouts={workoutHistory} />
         </div>

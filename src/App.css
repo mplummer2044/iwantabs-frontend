@@ -1,3 +1,11 @@
+.calendar-loading {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-style: italic;
+}
 .month-header {
   display: flex;
   align-items: center;
@@ -15,6 +23,7 @@
   margin-bottom: 2rem;
   min-height: 300px; /* Prevent collapse */
   position: relative;
+  overflow: hidden;
   z-index: 0;
 }
 
@@ -23,7 +32,8 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
   padding: 1rem;
-  min-height: 250px; /* Ensure grid maintains space */
+  min-height: 50vh; /* Maintain calendar height */
+  transition: opacity 0.3s ease;
 }
 
 /* Bottom Navigation */
@@ -40,6 +50,8 @@ html, body, #root {
 .main-content {
   flex: 1;
   overflow-y: auto;
+  position: relative;
+  contain: strict;
 }
 .bottom-nav {
   position: fixed;
