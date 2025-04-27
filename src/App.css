@@ -1,9 +1,21 @@
-/* Add to your CSS */
+/* Base Styles */
 .app-header {
   position: relative;
   z-index: 200;
+  padding: 1rem;
+  background: white;
 }
 
+/* Content Sections - Visible by Default */
+.workout-creator,
+.workout-history,
+.template-list {
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Workout Grid - Hidden by Default */
 .workout-grid {
   position: fixed;
   top: 0;
@@ -12,121 +24,74 @@
   bottom: 0;
   background: white;
   z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
-/* Hide other content when workout is active */
-.workout-creator,
-.workout-history,
-.template-list {
-  display: none;
+/* Active Workout Modifiers */
+.active-workout {
+  /* Hide other sections */
+  .workout-creator,
+  .workout-history,
+  .template-list {
+    display: none;
+  }
+
+  /* Show workout grid */
+  .workout-grid {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Compact header */
+  .app-header {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    position: fixed;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
 }
 
-/* When workout is active, make header smaller */
-.active-workout .app-header {
-  padding: 0.5rem;
-  font-size: 0.9rem;
-  position: fixed;
-  width: 100%;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
+/* Exercise Card Styling */
 .exercise-card {
   width: 100%;
   height: 100%;
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
 }
 
-.header-cell {
-  background: #f5f5f5;
-  padding: 1rem;
-  font-weight: bold;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+.exercise-card-container {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
-.exercise-group {
-  display: contents;
-}
-
-.exercise-cell {
-  grid-column: 1;
-  background: white;
-  padding: 0.8rem;
+/* Navigation Dots */
+.exercise-nav-dots {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid #eee;
+  gap: 8px;
+  z-index: 100;
 }
 
-/* Set rows - span columns 2 and 3 */
-.set-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Only for columns 2 and 3 */
-  grid-column: 2 / 4; /* Span from column 2 to 4 */
-  background: white;
-  border-bottom: 1px solid #eee;
+.nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: all 0.3s ease;
 }
 
-.previous-cell {
-  grid-column: 2;
-  background: white;
-  padding: 0.8rem;
-  border-bottom: 1px solid #eee;
+.nav-dot.active {
+  background: #4CAF50;
+  transform: scale(1.2);
 }
 
-.current-cell {
-  flex-grow: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Align the first set row with the exercise cell */
-.exercise-cell:first-child {
-  grid-row: span var(--sets-count, 1); /* You'll need to set this dynamically */
-}
-
-.set-number {
-  font-size: 0.9em;
-  color: #666;
-  margin: 2px 0;
-}
-
-.desktop-sets {
-  margin-top: 0.5rem;
-}
-
-.exercise-type {
-  color: #666;
-  font-size: 0.9em;
-}
-
-
-.previous-set {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.current-set {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.weight-reps {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-input {
-  font-size: 16px;
-  touch-action: manipulation;
-}
-
+/* Input and Status Styles */
 .status-indicator {
   width: 20px;
   height: 20px;
@@ -139,94 +104,29 @@ input {
 .status-indicator.bad { background: #F44336; }
 .status-indicator.pending { background: #ddd; }
 
-.footer-cell {
-  grid-column: 1 / -1;
-  padding: 1rem;
-  background: white;
-  text-align: right;
-  border-top: 2px solid #eee;
+input {
+  font-size: 16px;
+  touch-action: manipulation;
+  padding: 0.5rem;
 }
 
-.mobile-sets {
-  display: none;
-  color: #666;
-  font-size: 0.9em;
-}
-
-.time-input input {
-  max-width: 120px;
-  text-align: center;
-}
-
+/* Mobile Optimization */
 @media (max-width: 768px) {
-  /* Adjust the workout grid to start below the header */
-  .workout-grid {
-    top: 50px; /* Header height + nav dots spacing */
-    height: calc(100vh - 50px - 60px); /* Account for header and footer */
-    padding: 0 0 60px; /* Remove top padding since positioning is handled by top */
-  }
+  .active-workout {
+    .workout-grid {
+      top: 60px;
+      height: calc(100vh - 60px - 70px);
+      padding: 0 0 70px;
+    }
 
-  /* Position the navigation dots below the header */
-  .exercise-nav-dots {
-    top: 60px; /* Adjust based on header height and desired spacing */
+    .exercise-nav-dots {
+      top: 70px;
+    }
   }
-
-  /* Ensure the exercise card takes full available height */
-  .exercise-card-container {
-    height: 100%;
-  }
-
-  /* Explicitly set the header height when active */
-  .active-workout .app-header {
-    height: 50px; /* Adjust based on your header's actual height */
-  }
-}
 
   .exercise-card {
-    height: 100%; /* Fill available space */
+    height: 100%;
     transform: none !important;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-
-  .exercise-header-cell {
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .current-set {
-    min-height: 60px; /* Adjust based on your needs */
-  }
-
-  .previous-cell::before,
-  .current-cell::before {
-    font-size: 1.1rem;
-  }
-
-  .time-input input {
-    width: 100%;
-    max-width: none;
-  }
-
-  /* Disable body scroll when workout active */
-  body {
-    overflow: hidden;
-  }
-
-  .nav-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ddd;
-    transition: all 0.3s ease;
-  }
-
-  .nav-dot.active {
-    background: #4CAF50;
-    transform: scale(1.2);
   }
 
   .footer-cell {
@@ -234,97 +134,15 @@ input {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 100;
-  }
-
-
-  .desktop-sets {
-    display: none;
-  }
-  
-  .mobile-sets {
-    display: block;
-    margin-top: 0.5rem;
-  }
-  
-  .exercise-cell {
-    min-height: auto;
-    padding: 0.8rem 0.5rem;
-  }
-
-
-  .header-cell {
-    display: none; /* Hide column headers on mobile */
-  }
-
-
-  /* Create a card-like layout for each exercise */
-  .exercise-group {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    background: white;
     padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .exercise-cell,
-  .previous-cell,
-  .current-cell {
-    grid-column: 1;
-    width: 100%;
-    padding: 0.5rem;
-    min-height: auto;
-    display: block;
-  }
-
-  .set-data {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .status-indicator {
-    width: 24px;
-    height: 24px;
-    margin-right: 0.5rem;
-  }
-
-  input {
-    max-width: 100%;
-    width: 100%;
-    padding: 0.5rem;
-  }
-
-  .weight-reps {
-    gap: 0.5rem;
-  }
-
-  .footer-cell {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
     background: white;
-    padding: 1rem;
     box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
   }
+}
 
-
-/* Keep desktop layout */
+/* Desktop Styles */
 @media (min-width: 769px) {
   .mobile-sets {
     display: none;
   }
-}
-
-@viewport {
-  width: device-width;
-  zoom: 1.0;
-  max-zoom: 1.0;
-  min-zoom: 1.0;
-  user-zoom: fixed;
 }
