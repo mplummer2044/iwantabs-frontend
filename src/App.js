@@ -249,9 +249,18 @@ const updateSetValue = (exerciseIndex, setIndex, field, value) => {
   if (field === 'time') {
     updatedExercises[exerciseIndex].sets[setIndex].values[field] = value || null;
   } else {
-    // Original handling for other fields
     updatedExercises[exerciseIndex].sets[setIndex].values[field] = 
       value === '' ? null : Number(value);
+
+    // Autofill logic for reps in first set
+    if (field === 'reps' && setIndex === 0 && updatedExercises[exerciseIndex].measurementType === 'weights') {
+      const newRepsValue = value === '' ? null : Number(value);
+      for (let i = 1; i < updatedExercises[exerciseIndex].sets.length; i++) {
+        if (updatedExercises[exerciseIndex].sets[i].values.reps === null) {
+          updatedExercises[exerciseIndex].sets[i].values.reps = newRepsValue;
+        }
+      }
+    }
   }
   
   setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
