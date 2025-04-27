@@ -39,7 +39,6 @@ const handleTouchEnd = (e) => {
   const touchEndY = e.changedTouches[0].clientY;
   const deltaY = touchStartY - touchEndY;
 
-  // Only handle vertical swipes
   if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
     if (deltaY > 0) {
       setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
@@ -49,9 +48,10 @@ const handleTouchEnd = (e) => {
   }
 };
 
+// Add this right after handleTouchEnd
 const handleTouchMove = (e) => {
   if (activeWorkout) {
-    // Prevent horizontal scroll
+    if (e.target.closest('input')) return;
     e.preventDefault();
   }
 };
@@ -375,7 +375,7 @@ const calculateWorkoutDuration = (workout) => {
 // ----------------------
 return (
   <div className="app">
-    {/* Always show header */}
+    {/* Header Section */}
     <header className="app-header">
       <h1>I WANT ABS 🏋️</h1>
       {user && (
@@ -384,8 +384,6 @@ return (
         </button>
       )}
     </header>
-
-    
 
     {/* Template Creation Interface */}
     <div className="workout-creator">
@@ -489,8 +487,8 @@ return (
           className="exercise-card"
           style={{ 
             transform: `translateY(${(exIndex - currentExerciseIndex) * 100}%)`,
-            zIndex: activeWorkout.exerciseList.length - Math.abs(exIndex - currentExerciseIndex),
-            opacity: exIndex === currentExerciseIndex ? 1 : 0
+            zIndex: Math.abs(exIndex - currentExerciseIndex) * -1,
+            opacity: exIndex === currentExerciseIndex ? 1 : 0.5
           }}
         >
           {/* Exercise Header */}

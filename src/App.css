@@ -1,12 +1,11 @@
 .workout-grid {
-  overflow-x: hidden;
-}
-
-.exercise-card {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
+  gap: 1px;
+  background: #e0e0e0;
+  margin: 1rem;
+  border: 1px solid #ccc;
+  overflow-x: auto; /* Allows horizontal scrolling on mobile */
 }
 
 .header-cell {
@@ -49,9 +48,10 @@
 }
 
 .current-cell {
-  flex-grow: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  grid-column: 3;
+  background: white;
+  padding: 0.8rem;
+  border-bottom: 1px solid #eee;
 }
 
 /* Align the first set row with the exercise cell */
@@ -75,6 +75,7 @@
 }
 
 
+
 .previous-set {
   display: flex;
   align-items: center;
@@ -94,8 +95,11 @@
 }
 
 input {
-  font-size: 16px;
-  touch-action: manipulation;
+  padding: 0.3rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-width: 80px;
+  font-size: 0.9em;
 }
 
 .status-indicator {
@@ -140,26 +144,29 @@ input {
     background: white;
   }
 
-  .exercise-card-container {
-    position: relative;
-    height: 100%;
-    overflow: hidden;
+  .exercise-card {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    position: absolute;
+    width: 100%;
+    height: calc(100vh - 120px); /* Match container height */
+    top: 0;
+    left: 0;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    background: white;
+    padding: 20px;
+    will-change: transform;
   }
   
-  .exercise-card {
-    width: 100%;
-    height: 100%;
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform;
+  .exercise-card-container {
+    position: relative;
+    height: calc(100vh - 120px);
+    overflow: hidden;
   }
 
   .exercise-header-cell {
     font-size: 1.4rem;
     margin-bottom: 1.5rem;
-  }
-
-  .current-set {
-    min-height: 60px; /* Adjust based on your needs */
   }
 
   .previous-cell::before,
@@ -252,7 +259,8 @@ input {
     display: block;
   }
 
-  .set-data {
+  .set-data,
+  .current-set {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -291,12 +299,4 @@ input {
   .mobile-sets {
     display: none;
   }
-}
-
-@viewport {
-  width: device-width;
-  zoom: 1.0;
-  max-zoom: 1.0;
-  min-zoom: 1.0;
-  user-zoom: fixed;
 }
