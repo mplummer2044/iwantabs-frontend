@@ -411,8 +411,8 @@ const CalendarView = ({ workouts }) => {
       <div className="calendar-grid">
         {daysInMonth.map(day => {
           const hasWorkout = workouts.some(workout => 
-            isSameMonth(new Date(workout.createdAt), selectedMonth) &&
-            format(new Date(workout.createdAt), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+            isSameMonth(new Date(workout.date), selectedMonth) && // Changed from createdAt to date
+            format(new Date(workout.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
           );
           
           return (

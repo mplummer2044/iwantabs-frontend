@@ -9,8 +9,18 @@
   z-index: 1;
 }
 
+/* In App.css */
 .calendar-container {
   margin-bottom: 2rem;
+  min-height: 300px; /* Prevent collapse */
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  padding: 1rem;
+  min-height: 250px; /* Ensure grid maintains space */
 }
 
 /* Bottom Navigation */
@@ -51,14 +61,6 @@ html, body, #root {
 
 .bottom-nav button.active {
   color: #4CAF50;
-}
-
-/* Calendar View */
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  padding: 1rem;
 }
 
 .calendar-day {
