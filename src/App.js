@@ -44,21 +44,15 @@ const handleTouchEnd = (e) => {
   const touchEndY = e.changedTouches[0].clientY;
   const deltaY = touchStartY - touchEndY;
 
+  // Only trigger on vertical swipes
   if (Math.abs(deltaY) > 50 && !e.target.closest('input')) {
     if (deltaY > 0) { // Swipe down
-      setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
+      setCurrentExerciseIndex(prev => 
+        Math.min(prev + 1, activeWorkout.exerciseList.length - 1)
+      );
     } else { // Swipe up
       setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
     }
-  }
-  setTouchStartY(0);
-};
-
-// Add this right after handleTouchEnd
-const handleTouchMove = (e) => {
-  if (activeWorkout) {
-    if (e.target.closest('input')) return;
-    e.preventDefault();
   }
 };
   
@@ -598,16 +592,16 @@ return (
 
     {/* Exercise Cards Container */}
     <div className="exercise-card-container">
-      {activeWorkout.exerciseList.map((exercise, exIndex) => (
-        <div 
-          key={exIndex}
-          className="exercise-card"
-          style={{ 
-            transform: `translateY(${(exIndex - currentExerciseIndex) * 100}%)`,
-            zIndex: Math.abs(exIndex - currentExerciseIndex) * -1,
-            opacity: exIndex === currentExerciseIndex ? 1 : 0.5
-          }}
-        >
+    {activeWorkout.exerciseList.map((exercise, exIndex) => (
+          <div 
+            key={exIndex}
+            className="exercise-card"
+            style={{ 
+              transform: `translateY(${(exIndex - currentExerciseIndex) * 100}%)`,
+              opacity: exIndex === currentExerciseIndex ? 1 : 0.3,
+              transition: 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)'
+            }}
+          >
           {/* Exercise Header */}
           <div className="exercise-header-cell">
             {exercise.name}
@@ -621,22 +615,12 @@ return (
 
           {/* Previous Workout Section */}
           <div className="previous-cell" data-label="Previous Workout">
-            {exercise.sets.map((_, setIndex) => (
+            {exercise.previousStats?.map((set, setIndex) => (
               <div key={setIndex} className="set-data">
-                {activeWorkout.previousWorkouts?.[0]?.exerciseList
-                  ?.find(e => e.exerciseID === exercise.exerciseID)?.sets?.[setIndex] && (
-                  <div className="previous-set">
-                    <span className={`status-indicator ${
-                      activeWorkout.previousWorkouts[0].exerciseList
-                        .find(e => e.exerciseID === exercise.exerciseID).sets[setIndex].status
-                    }`} />
-                    {renderSetValues(
-                      exercise.measurementType,
-                      activeWorkout.previousWorkouts[0].exerciseList
-                        .find(e => e.exerciseID === exercise.exerciseID).sets[setIndex].values
-                    )}
-                  </div>
-                )}
+                <div className="previous-set">
+                  <span className={`status-indicator ${set.status || 'pending'}`} />
+                  {renderSetValues(exercise.measurementType, set.values)}
+                </div>
               </div>
             ))}
           </div>

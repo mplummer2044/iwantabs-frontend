@@ -275,26 +275,43 @@ input {
   }
 
   .exercise-card-container {
-    position: relative;
-    height: calc(100vh - 120px);
-    overflow: hidden;
-    touch-action: pan-y; /* Enable vertical scrolling */
-  }
-  
-  .exercise-card {
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    padding: 20px;
-    will-change: transform;
+    height: calc(100vh - 150px); /* Account for header and footer */
+    overflow-y: hidden;
+    scroll-snap-type: y mandatory;
   }
 
-  .exercise-header-cell {
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
+  .swipe-indicator {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    opacity: 0.3;
+    z-index: 100;
+  }
+  
+  .swipe-up { right: 20px; }
+  .swipe-down { left: 20px; }
+  
+  @media (min-width: 769px) {
+    .swipe-indicator {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .exercise-card {
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+  
+    .exercise-header-cell {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
+      padding-bottom: 1rem;
+    }
   }
 
   .previous-cell::before,
