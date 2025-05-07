@@ -44,13 +44,14 @@ const handleTouchEnd = (e) => {
   const touchEndY = e.changedTouches[0].clientY;
   const deltaY = touchStartY - touchEndY;
 
-  if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
-    if (deltaY > 0) {
+  if (Math.abs(deltaY) > 50 && !e.target.closest('input')) {
+    if (deltaY > 0) { // Swipe down
       setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
-    } else {
+    } else { // Swipe up
       setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
     }
   }
+  setTouchStartY(0);
 };
 
 // Add this right after handleTouchEnd
@@ -169,42 +170,45 @@ const startWorkout = async (template) => {
         limit: 2
       },
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${tokens?.idToken?.toString()}`
       }
     });
 
+    const exerciseList = template.exercises.map(exercise => ({
+      ...exercise,
+      exerciseID: exercise.exerciseID || `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      sets: Array(exercise.sets || 1).fill().map(() => ({
+        values: {
+          reps: null,
+          weight: null,
+          distance: null,
+          time: null
+        },
+        status: 'pending'
+      })),
+      previousStats: previousWorkouts.flatMap(workout => 
+        (workout.exerciseList || workout.exercises || [])
+          .find(e => e.exerciseID === exercise.exerciseID)?.sets || []
+      )
+    }));
+
+    setCurrentExerciseIndex(0); // Reset to first exercise
     setActiveWorkout({
       userID: currentUser.username,
       workoutID: `workout_${Date.now()}`,
       templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exerciseList: template.exercises.map(exercise => ({  // Changed from exercises to exerciseList
-        ...exercise,
-        exerciseID: exercise.exerciseID,
-        sets: Array(exercise.sets || 1).fill().map(() => ({
-          values: {
-            reps: null,
-            weight: null,
-            distance: null,
-            time: null
-          },
-          status: 'pending'
-        })),
-        previousStats: previousWorkouts.flatMap(workout => 
-          workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
-        )
-      })),
-      previousWorkouts: previousWorkouts.map(workout => ({
-        ...workout,
-        exerciseList: workout.exerciseList || workout.exercises || []
-      }))
+      exerciseList,
+      previousWorkouts
     });
+
   } catch (err) {
     console.error("Workout initialization failed:", err);
-    alert("Failed to load previous workouts");
+    alert("Failed to start workout: " + (err.response?.data?.message || err.message));
   }
 };
+
+
 
 const updateSetStatus = (exerciseIndex, setIndex, status) => {
   const updatedExercises = [...activeWorkout.exerciseList];
@@ -468,38 +472,6 @@ return (
     </header>
 
     <div className="main-content">
-    {activeView === 'home' && (
-  <>
-    <div className="calendar-container">
-      {loading ? (
-        <div className="calendar-loading">Loading calendar...</div>
-      ) : (
-        <CalendarView workouts={workoutHistory} />
-      )}
-    </div>
-        <div className="calendar-container">
-          <CalendarView workouts={workoutHistory} />
-        </div>
-        
-        <div className="workout-history">
-          <h2 style={{ padding: '0 1rem' }}>Recent Workouts</h2>
-          {workoutHistory.map(workout => (
-            <div key={workout.workoutID} className="workout-log">
-              {/* Existing workout history item rendering */}
-            </div>
-          ))}
-        </div>
-        
-        <h2 style={{ padding: '0 1rem' }}>My Workout Templates</h2>
-        <div className="template-list">
-          {workoutTemplates.map(template => (
-            <div key={template.templateID} className="template-card">
-              {/* Existing template card rendering */}
-            </div>
-          ))}
-        </div>
-      </>
-    )}
 
       {activeView === 'build' && (
         <div className="workout-creator">
