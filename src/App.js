@@ -163,46 +163,36 @@ const handleTouchMove = (e) => {
 // --------------------------
 const startWorkout = async (template) => {
   try {
-    const { tokens } = await fetchAuthSession();
+    // Fetch previous workouts using the CORRECTED lambda
     const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
       params: { 
         templateID: template.templateID,
         limit: 2
-      },
-      headers: {
-        'Authorization': `Bearer ${tokens?.idToken?.toString()}`
       }
     });
 
+    // Initialize activeWorkout with exerciseList
     setActiveWorkout({
       userID: currentUser.username,
       workoutID: `workout_${Date.now()}`,
       templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exerciseList: template.exercises.map(exercise => ({  // Changed from exercises to exerciseList
+      exerciseList: template.exercises.map(exercise => ({
         ...exercise,
         exerciseID: exercise.exerciseID,
-        sets: Array(exercise.sets || 1).fill().map(() => ({
-          values: {
-            reps: null,
-            weight: null,
-            distance: null,
-            time: null
-          },
+        sets: Array(exercise.sets).fill().map(() => ({
+          values: { reps: null, weight: null, distance: null, time: null },
           status: 'pending'
         })),
+        // Ensure previousStats are correctly mapped
         previousStats: previousWorkouts.flatMap(workout => 
-          workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
+          workout.exerciseList.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
         )
       })),
-      previousWorkouts: previousWorkouts.map(workout => ({
-        ...workout,
-        exerciseList: workout.exerciseList || workout.exercises || []
-      }))
+      previousWorkouts: previousWorkouts
     });
   } catch (err) {
     console.error("Workout initialization failed:", err);
-    alert("Failed to load previous workouts");
   }
 };
 
