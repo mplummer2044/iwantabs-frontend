@@ -174,41 +174,37 @@ const startWorkout = async (template) => {
       }
     });
 
-    const exerciseList = template.exercises.map(exercise => ({
-      ...exercise,
-      exerciseID: exercise.exerciseID || `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      sets: Array(exercise.sets || 1).fill().map(() => ({
-        values: {
-          reps: null,
-          weight: null,
-          distance: null,
-          time: null
-        },
-        status: 'pending'
-      })),
-      previousStats: previousWorkouts.flatMap(workout => 
-        (workout.exerciseList || workout.exercises || [])
-          .find(e => e.exerciseID === exercise.exerciseID)?.sets || []
-      )
-    }));
-
-    setCurrentExerciseIndex(0); // Reset to first exercise
     setActiveWorkout({
       userID: currentUser.username,
       workoutID: `workout_${Date.now()}`,
       templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exerciseList,
-      previousWorkouts
+      exerciseList: template.exercises.map(exercise => ({  // Changed from exercises to exerciseList
+        ...exercise,
+        exerciseID: exercise.exerciseID,
+        sets: Array(exercise.sets || 1).fill().map(() => ({
+          values: {
+            reps: null,
+            weight: null,
+            distance: null,
+            time: null
+          },
+          status: 'pending'
+        })),
+        previousStats: previousWorkouts.flatMap(workout => 
+          workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
+        )
+      })),
+      previousWorkouts: previousWorkouts.map(workout => ({
+        ...workout,
+        exerciseList: workout.exerciseList || workout.exercises || []
+      }))
     });
-
   } catch (err) {
     console.error("Workout initialization failed:", err);
-    alert("Failed to start workout: " + (err.response?.data?.message || err.message));
+    alert("Failed to load previous workouts");
   }
 };
-
-
 
 const updateSetStatus = (exerciseIndex, setIndex, status) => {
   const updatedExercises = [...activeWorkout.exerciseList];
@@ -472,6 +468,38 @@ return (
     </header>
 
     <div className="main-content">
+    {activeView === 'home' && (
+  <>
+    <div className="calendar-container">
+      {loading ? (
+        <div className="calendar-loading">Loading calendar...</div>
+      ) : (
+        <CalendarView workouts={workoutHistory} />
+      )}
+    </div>
+        <div className="calendar-container">
+          <CalendarView workouts={workoutHistory} />
+        </div>
+        
+        <div className="workout-history">
+          <h2 style={{ padding: '0 1rem' }}>Recent Workouts</h2>
+          {workoutHistory.map(workout => (
+            <div key={workout.workoutID} className="workout-log">
+              {/* Existing workout history item rendering */}
+            </div>
+          ))}
+        </div>
+        
+        <h2 style={{ padding: '0 1rem' }}>My Workout Templates</h2>
+        <div className="template-list">
+          {workoutTemplates.map(template => (
+            <div key={template.templateID} className="template-card">
+              {/* Existing template card rendering */}
+            </div>
+          ))}
+        </div>
+      </>
+    )}
 
       {activeView === 'build' && (
         <div className="workout-creator">
