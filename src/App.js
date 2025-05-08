@@ -575,10 +575,10 @@ return (
       )}
       {/* Active Workout Interface */}
       {activeWorkout && (
-    <div className="workout-grid" 
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd} 
-        style={{ display: 'block' }}>
+      <div className="workout-grid" 
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      style={{ display: 'block' }}>
       {/* Navigation Dots */}
       <div className="exercise-nav-dots">
         {activeWorkout.exerciseList.map((_, index) => (
