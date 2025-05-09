@@ -4,8 +4,6 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
-import { FaHome, FaDumbbell, FaChartLine, FaUser } from 'react-icons/fa';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
 
 const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
@@ -13,8 +11,6 @@ function App({ signOut, user }) {
   // State Management Section
   // -------------------------
   // State Variables
-  const [activeView, setActiveView] = useState('home');
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
   const [workoutTemplates, setWorkoutTemplates] = useState([]);
@@ -44,15 +40,20 @@ const handleTouchEnd = (e) => {
   const touchEndY = e.changedTouches[0].clientY;
   const deltaY = touchStartY - touchEndY;
 
-  // Only trigger on vertical swipes
-  if (Math.abs(deltaY) > 50 && !e.target.closest('input')) {
-    if (deltaY > 0) { // Swipe down
-      setCurrentExerciseIndex(prev => 
-        Math.min(prev + 1, activeWorkout.exerciseList.length - 1)
-      );
-    } else { // Swipe up
+  if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
+    if (deltaY > 0) {
+      setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
+    } else {
       setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
     }
+  }
+};
+
+// Add this right after handleTouchEnd
+const handleTouchMove = (e) => {
+  if (activeWorkout) {
+    if (e.target.closest('input')) return;
+    e.preventDefault();
   }
 };
   
@@ -107,9 +108,9 @@ const handleTouchEnd = (e) => {
       });
       
       // Sort history by date descending
-  const sortedHistory = (res.data.history || []).sort((a, b) => 
-    new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
-  );
+      const sortedHistory = (res.data.history || []).sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
   
       setWorkoutTemplates(res.data.templates || []);
       setWorkoutHistory(sortedHistory);
@@ -157,36 +158,47 @@ const handleTouchEnd = (e) => {
 // --------------------------
 const startWorkout = async (template) => {
   try {
-    // Fetch previous workouts using the CORRECTED lambda
+    const { tokens } = await fetchAuthSession();
     const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
       params: { 
         templateID: template.templateID,
         limit: 2
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${tokens?.idToken?.toString()}`
       }
     });
 
-    // Initialize activeWorkout with exerciseList
     setActiveWorkout({
       userID: currentUser.username,
       workoutID: `workout_${Date.now()}`,
       templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exerciseList: template.exercises.map(exercise => ({
+      exerciseList: template.exercises.map(exercise => ({  // Changed from exercises to exerciseList
         ...exercise,
         exerciseID: exercise.exerciseID,
-        sets: Array(exercise.sets).fill().map(() => ({
-          values: { reps: null, weight: null, distance: null, time: null },
+        sets: Array(exercise.sets || 1).fill().map(() => ({
+          values: {
+            reps: null,
+            weight: null,
+            distance: null,
+            time: null
+          },
           status: 'pending'
         })),
-        // Ensure previousStats are correctly mapped
         previousStats: previousWorkouts.flatMap(workout => 
-          workout.exerciseList.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
+          workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
         )
       })),
-      previousWorkouts: previousWorkouts
+      previousWorkouts: previousWorkouts.map(workout => ({
+        ...workout,
+        exerciseList: workout.exerciseList || workout.exercises || []
+      }))
     });
   } catch (err) {
     console.error("Workout initialization failed:", err);
+    alert("Failed to load previous workouts");
   }
 };
 
@@ -359,248 +371,131 @@ const calculateWorkoutDuration = (workout) => {
   return Math.round((end - start) / (1000 * 60)); // Returns minutes
 };
 
-const BottomNav = () => (
-  <div className="bottom-nav">
-    <button onClick={() => setActiveView('home')} className={activeView === 'home' ? 'active' : ''}>
-      <FaHome />
-    </button>
-    <button onClick={() => setActiveView('build')} className={activeView === 'build' ? 'active' : ''}>
-      <FaDumbbell />
-    </button>
-    <button onClick={() => setActiveView('stats')} className={activeView === 'stats' ? 'active' : ''}>
-      <FaChartLine />
-    </button>
-    <button onClick={() => setActiveView('profile')} className={activeView === 'profile' ? 'active' : ''}>
-      <FaUser />
-    </button>
-  </div>
-);
 
-const CalendarView = ({ workouts }) => {
-  const monthStart = startOfMonth(selectedMonth);
-  const monthEnd = endOfMonth(selectedMonth);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  // Add fallback to createdAt if date field doesn't exist
-  const normalizeWorkoutDate = (workout) => {
-    return workout.date || workout.createdAt;
-  };
-
-  return (
-    <div className="calendar-container">
-      <div className="month-header">
-        <button onClick={() => setSelectedMonth(prev => new Date(prev.setMonth(prev.getMonth() - 1)))}>
-          ←
-        </button>
-        <h3>{format(selectedMonth, 'MMMM yyyy')}</h3>
-        <button onClick={() => setSelectedMonth(prev => new Date(prev.setMonth(prev.getMonth() + 1)))}>
-          →
-        </button>
-      </div>
-      <div className="calendar-grid">
-        {daysInMonth.map(day => {
-          const hasWorkout = workouts.some(workout => {
-            const workoutDate = normalizeWorkoutDate(workout);
-            return (
-              isSameMonth(new Date(workoutDate), selectedMonth) &&
-              format(new Date(workoutDate), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-            );
-          });
-          
-          return (
-            <div key={day} className={`calendar-day ${!isSameMonth(day, selectedMonth) ? 'other-month' : ''}`}>
-              {format(day, 'd')}
-              {hasWorkout && <div className="workout-dot" />}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const StatsView = ({ workoutHistory }) => {
-  const totalWorkouts = workoutHistory.length;
-  const totalMinutes = workoutHistory.reduce((sum, workout) => sum + calculateWorkoutDuration(workout), 0);
-  
-  return (
-    <div className="stats-grid">
-      <div className="stat-card">
-        <h3>Total Workouts</h3>
-        <p>{totalWorkouts}</p>
-      </div>
-      <div className="stat-card">
-        <h3>Total Minutes</h3>
-        <p>{totalMinutes}</p>
-      </div>
-    </div>
-  );
-};
-
-const ProfileView = ({ user }) => (
-  <div className="profile-view">
-    <h2>{user?.email}</h2>
-    <p>Member since: {new Date(user?.signInUserSession.idToken.payload.auth_time * 1000).toLocaleDateString()}</p>
-  </div>
-);
 // UI Components Section
 // ----------------------
 return (
   <div className="app">
+    {/* Header Section */}
     <header className="app-header">
       <h1>I WANT ABS 🏋️</h1>
+      {user && (
+        <button onClick={signOut} className="sign-out-button">
+          Sign Out
+        </button>
+      )}
     </header>
 
-    <div className="main-content">
-    {activeView === 'home' && (
-  <>
-    <div className="calendar-container">
-      {loading ? (
-        <div className="calendar-loading">Loading calendar...</div>
-      ) : (
-        <CalendarView workouts={workoutHistory} />
-      )}
-    </div>
-        <div className="calendar-container">
-          <CalendarView workouts={workoutHistory} />
-        </div>
-        
-        <div className="workout-history">
-          <h2 style={{ padding: '0 1rem' }}>Recent Workouts</h2>
-          {workoutHistory.map(workout => (
-            <div key={workout.workoutID} className="workout-log">
-              {/* Existing workout history item rendering */}
-            </div>
-          ))}
-        </div>
-        
-        <h2 style={{ padding: '0 1rem' }}>My Workout Templates</h2>
-        <div className="template-list">
-          {workoutTemplates.map(template => (
-            <div key={template.templateID} className="template-card">
-              {/* Existing template card rendering */}
-            </div>
-          ))}
-        </div>
-      </>
-    )}
+    {/* Template Creation Interface */}
+    <div className="workout-creator">
+      <h2>Create Workout Template</h2>
+      <input
+        type="text"
+        placeholder="Workout Name"
+        value={currentTemplate.name}
+        onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
+      />
 
-      {activeView === 'build' && (
-        <div className="workout-creator">
-        <h2>Create Workout Template</h2>
-        <input
-          type="text"
-          placeholder="Workout Name"
-          value={currentTemplate.name}
-          onChange={(e) => setCurrentTemplate({ ...currentTemplate, name: e.target.value })}
-        />
-
-        {currentTemplate.exercises.map((exercise, index) => (
-          <div key={index} className="exercise-block">
-            <input
-              placeholder="Exercise Name"
-              value={exercise.name}
-              onChange={(e) => {
-                const exercises = [...currentTemplate.exercises];
-                exercises[index] = {
-                  ...exercises[index],
-                  name: e.target.value,
-                  exerciseID: exercise.exerciseID || `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                };
-                setCurrentTemplate({ ...currentTemplate, exercises });
-              }}
-            />
-            <select
-              value={exercise.sets}
-              onChange={(e) => {
-                const exercises = [...currentTemplate.exercises];
-                exercises[index].sets = parseInt(e.target.value);
-                setCurrentTemplate({ ...currentTemplate, exercises });
-              }}
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                <option key={num} value={num}>
-                  {num} Set{num !== 1 ? 's' : ''}
-                </option>
-              ))}
-            </select>
-            <select
-              value={exercise.measurementType}
-              onChange={(e) => {
-                const exercises = [...currentTemplate.exercises];
-                exercises[index].measurementType = e.target.value;
-                setCurrentTemplate({ ...currentTemplate, exercises });
-              }}
-            >
-              <option value="weights">Weight × Sets × Reps</option>
-              <option value="bodyweight">Bodyweight (Reps)</option>
-              <option value="timed">Time</option>
-              <option value="cardio">Distance</option>
-            </select>
-            <button
-              onClick={() => {
-                const exercises = currentTemplate.exercises.filter((_, i) => i !== index);
-                setCurrentTemplate({ ...currentTemplate, exercises });
-              }}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-
-        <button
-          onClick={() => setCurrentTemplate({
-            ...currentTemplate,
-            exercises: [...currentTemplate.exercises, { 
-              name: '', 
-              measurementType: 'weights',
-              sets: 1
-            }]
-          })}
-        >
-          Add Exercise
-        </button>
-        
-        <button onClick={createWorkoutTemplate}>
-          Save Template
-        </button>
-      </div>
-    )}
-    {activeView === 'stats' && (
-        <StatsView workoutHistory={workoutHistory} />
-      )}
-
-      {activeView === 'profile' && (
-        <ProfileView user={user} />
-      )}
-      {/* Active Workout Interface */}
-      {activeWorkout && (
-      <div className="workout-grid" 
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      style={{ display: 'block' }}>
-      {/* Navigation Dots */}
-      <div className="exercise-nav-dots">
-        {activeWorkout.exerciseList.map((_, index) => (
-          <div 
-            key={index}
-            className={`nav-dot ${index === currentExerciseIndex ? 'active' : ''}`}
+      {currentTemplate.exercises.map((exercise, index) => (
+        <div key={index} className="exercise-block">
+          <input
+            placeholder="Exercise Name"
+            value={exercise.name}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index] = {
+                ...exercises[index],
+                name: e.target.value,
+                exerciseID: exercise.exerciseID || `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+              };
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
           />
-        ))}
-      </div>
+          <select
+            value={exercise.sets}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index].sets = parseInt(e.target.value);
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+              <option key={num} value={num}>
+                {num} Set{num !== 1 ? 's' : ''}
+              </option>
+            ))}
+          </select>
+          <select
+            value={exercise.measurementType}
+            onChange={(e) => {
+              const exercises = [...currentTemplate.exercises];
+              exercises[index].measurementType = e.target.value;
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          >
+            <option value="weights">Weight × Sets × Reps</option>
+            <option value="bodyweight">Bodyweight (Reps)</option>
+            <option value="timed">Time</option>
+            <option value="cardio">Distance</option>
+          </select>
+          <button
+            onClick={() => {
+              const exercises = currentTemplate.exercises.filter((_, i) => i !== index);
+              setCurrentTemplate({ ...currentTemplate, exercises });
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+
+      <button
+        onClick={() => setCurrentTemplate({
+          ...currentTemplate,
+          exercises: [...currentTemplate.exercises, { 
+            name: '', 
+            measurementType: 'weights',
+            sets: 1
+          }]
+        })}
+      >
+        Add Exercise
+      </button>
+      
+      <button onClick={createWorkoutTemplate}>
+        Save Template
+      </button>
+    </div>
+
+    {/* Active Workout Interface */}
+    {activeWorkout && (
+  <div className="workout-grid" 
+       onTouchStart={handleTouchStart}
+       onTouchEnd={handleTouchEnd}
+       onTouchMove={handleTouchMove}  // Add this prop
+       style={{ display: 'block' }}>
+    {/* Navigation Dots */}
+    <div className="exercise-nav-dots">
+      {activeWorkout.exerciseList.map((_, index) => (
+        <div 
+          key={index}
+          className={`nav-dot ${index === currentExerciseIndex ? 'active' : ''}`}
+        />
+      ))}
+    </div>
 
     {/* Exercise Cards Container */}
     <div className="exercise-card-container">
-    {activeWorkout.exerciseList.map((exercise, exIndex) => (
-          <div 
-            key={exIndex}
-            className="exercise-card"
-            style={{ 
-              transform: `translateY(${(exIndex - currentExerciseIndex) * 100}%)`,
-              opacity: exIndex === currentExerciseIndex ? 1 : 0.3,
-              transition: 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)'
-            }}
-          >
+      {activeWorkout.exerciseList.map((exercise, exIndex) => (
+        <div 
+          key={exIndex}
+          className="exercise-card"
+          style={{ 
+            transform: `translateY(${(exIndex - currentExerciseIndex) * 100}%)`,
+            zIndex: Math.abs(exIndex - currentExerciseIndex) * -1,
+            opacity: exIndex === currentExerciseIndex ? 1 : 0.5
+          }}
+        >
           {/* Exercise Header */}
           <div className="exercise-header-cell">
             {exercise.name}
@@ -614,12 +509,22 @@ return (
 
           {/* Previous Workout Section */}
           <div className="previous-cell" data-label="Previous Workout">
-            {exercise.previousStats?.map((set, setIndex) => (
+            {exercise.sets.map((_, setIndex) => (
               <div key={setIndex} className="set-data">
-                <div className="previous-set">
-                  <span className={`status-indicator ${set.status || 'pending'}`} />
-                  {renderSetValues(exercise.measurementType, set.values)}
-                </div>
+                {activeWorkout.previousWorkouts?.[0]?.exerciseList
+                  ?.find(e => e.exerciseID === exercise.exerciseID)?.sets?.[setIndex] && (
+                  <div className="previous-set">
+                    <span className={`status-indicator ${
+                      activeWorkout.previousWorkouts[0].exerciseList
+                        .find(e => e.exerciseID === exercise.exerciseID).sets[setIndex].status
+                    }`} />
+                    {renderSetValues(
+                      exercise.measurementType,
+                      activeWorkout.previousWorkouts[0].exerciseList
+                        .find(e => e.exerciseID === exercise.exerciseID).sets[setIndex].values
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -702,9 +607,6 @@ return (
   </div>
 )}
 
-    <BottomNav />
-  </div>
-);
 
 
     {/* Workout History Section */}
