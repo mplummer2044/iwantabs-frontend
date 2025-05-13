@@ -1,6 +1,7 @@
 // src/components/common/WorkoutContext.js
 import axios from 'axios';
 import { createContext, useContext, useReducer } from 'react';
+import { fetchAuthSession } from 'aws-amplify/auth';
 const API_BASE = process.env.REACT_APP_API_BASE || 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 const WorkoutContext = createContext();
 
@@ -25,8 +26,12 @@ const reducer = (state, action) => {
       return { ...state, currentExerciseIndex: action.payload };
     case 'UPDATE_SET':
       // ... existing update logic
-    case 'LOAD_TEMPLATES':
-      return { ...state, workoutTemplates: action.payload };
+      case 'LOAD_TEMPLATES':
+        return {
+          ...state,
+          workoutTemplates: action.payload.templates,
+          workoutHistory: action.payload.history
+        };
     default:
       return state;
     case 'CLEAR_ACTIVE':
@@ -62,23 +67,50 @@ const reducer = (state, action) => {
 };
 
 export const WorkoutProvider = ({ children }) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    try {
-        const [state, dispatch] = useReducer(reducer, initialState);
-        const saveWorkout = async () => {
-            try {
-            await axios.post(`${API_BASE}/workouts`, state.activeWorkout);
-            dispatch({ type: 'CLEAR_ACTIVE' });
-            } catch (error) {
-            console.error('Save failed:', error);
-            }
-        };
-    } catch (error) {
+    const [state, dispatch] = useReducer(reducer, initialState);
+  
+    const saveWorkout = async () => {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      try {
+        await axios.post(`${API_BASE}/workouts`, state.activeWorkout);
+        dispatch({ type: 'CLEAR_ACTIVE' });
+      } catch (error) {
+        console.error('Save failed:', error);
         dispatch({ type: 'SET_ERROR', payload: error.message });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
+  
+    const fetchWorkouts = async () => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        try {
+          const { tokens } = await fetchAuthSession();
+          
+          const response = await axios.get(`${API_BASE}/templates`, {
+            headers: {
+              Authorization: tokens?.idToken?.toString()
+            }
+          });
+      
+          const sortedHistory = (response.data.history || []).sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+      
+          dispatch({
+            type: 'LOAD_TEMPLATES',
+            payload: {
+              templates: response.data.templates || [],
+              history: sortedHistory
+            }
+          });
+      
+        } catch (error) {
+          dispatch({ type: 'SET_ERROR', payload: error.message });
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      };
   
     return (
       <WorkoutContext.Provider value={{ 
@@ -90,5 +122,6 @@ export const WorkoutProvider = ({ children }) => {
         {children}
       </WorkoutContext.Provider>
     );
+  };
 
 export const useWorkout = () => useContext(WorkoutContext);

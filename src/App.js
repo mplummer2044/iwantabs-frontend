@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { withAuthenticator } from '@aws-amplify/ui-react';
-import { useWorkout } from '../common/WorkoutContext'
+import { useWorkout } from './components/common/WorkoutContext'
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 
