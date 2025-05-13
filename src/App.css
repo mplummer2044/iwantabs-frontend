@@ -351,3 +351,37 @@ input {
   font-size: 1.1rem;
   z-index: 1000;
 }
+
+/* App.css */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  font-size: 1.2rem;
+}
+
+.error-banner {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffebee;
+  color: #b71c1c;
+  padding: 10px 20px;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.error-fallback {
+  padding: 20px;
+  background: #ffebee;
+  border-radius: 8px;
+  text-align: center;
+}

@@ -5,6 +5,8 @@ import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 
+const { dispatch } = useWorkout(); // Add with other hooks
+
 const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
 function App({ signOut, user }) {
@@ -124,6 +126,7 @@ const handleTouchMove = (e) => {
   // Template Creation Logic
   // -----------------------
   const createWorkoutTemplate = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const { tokens } = await fetchAuthSession();
       const templateWithIDs = {
@@ -150,13 +153,16 @@ const handleTouchMove = (e) => {
           }]
         });
       } catch (err) {
-        console.error("Creation failed:", err.response?.data || err.message);
+        dispatch({ type: 'SET_ERROR', payload: err.message }); // Line 235
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false }); // Line 237
       }
     };
 
  // Workout Session Management
 // --------------------------
 const startWorkout = async (template) => {
+  dispatch({ type: 'SET_LOADING', payload: true }); // Line 250
   try {
     const { tokens } = await fetchAuthSession();
     const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
@@ -168,6 +174,7 @@ const startWorkout = async (template) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${tokens?.idToken?.toString()}`
       }
+    
     });
 
     setActiveWorkout({
@@ -197,8 +204,9 @@ const startWorkout = async (template) => {
       }))
     });
   } catch (err) {
-    console.error("Workout initialization failed:", err);
-    alert("Failed to load previous workouts");
+    dispatch({ type: 'SET_ERROR', payload: err.message }); // After line 288
+  } finally {
+    dispatch({ type: 'SET_LOADING', payload: false }); // Line 290
   }
 };
 

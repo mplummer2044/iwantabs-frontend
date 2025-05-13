@@ -8,11 +8,17 @@ const initialState = {
   activeWorkout: null,
   currentExerciseIndex: 0,
   workoutTemplates: [],
-  workoutHistory: []
+  workoutHistory: [],
+  loading: false,
+  error: null
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
     case 'SET_ACTIVE_WORKOUT':
       return { ...state, activeWorkout: action.payload };
     case 'SET_EXERCISE_INDEX':
@@ -56,21 +62,33 @@ const reducer = (state, action) => {
 };
 
 export const WorkoutProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const saveWorkout = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      await axios.post(`${API_BASE}/workouts`, state.activeWorkout);
-      dispatch({ type: 'CLEAR_ACTIVE' });
+        const [state, dispatch] = useReducer(reducer, initialState);
+        const saveWorkout = async () => {
+            try {
+            await axios.post(`${API_BASE}/workouts`, state.activeWorkout);
+            dispatch({ type: 'CLEAR_ACTIVE' });
+            } catch (error) {
+            console.error('Save failed:', error);
+            }
+        };
     } catch (error) {
-      console.error('Save failed:', error);
-    }
-  };
-
-  return (
-    <WorkoutContext.Provider value={{ state, dispatch, saveWorkout }}>
-      {children}
-    </WorkoutContext.Provider>
-  );
-};
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    };
+  
+    return (
+      <WorkoutContext.Provider value={{ 
+        state, 
+        dispatch, 
+        saveWorkout,
+        fetchWorkouts
+      }}>
+        {children}
+      </WorkoutContext.Provider>
+    );
 
 export const useWorkout = () => useContext(WorkoutContext);

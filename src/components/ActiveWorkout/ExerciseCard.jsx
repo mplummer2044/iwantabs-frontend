@@ -1,10 +1,22 @@
 // src/components/ActiveWorkout/ExerciseCard.jsx
 import { useWorkout } from '../common/WorkoutContext';
-
-const ExerciseCard = ({ exercise, previousWorkouts, isActive }) => {
+import React from 'react';
+const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
   const { dispatch } = useWorkout();
   const previousSets = previousWorkouts?.[0]?.exerciseList
     ?.find(e => e.exerciseID === exercise.exerciseID)?.sets || [];
+}, 
+// Custom comparison function
+(prevProps, nextProps) => {
+  return (
+    prevProps.isActive === nextProps.isActive &&
+    prevProps.exercise.exerciseID === nextProps.exercise.exerciseID &&
+    JSON.stringify(prevProps.exercise.sets) === 
+      JSON.stringify(nextProps.exercise.sets)
+  );
+});
+
+export default ExerciseCard;
 
   const handleUpdate = (setIndex, field, value) => {
     dispatch({
@@ -66,4 +78,3 @@ const ExerciseCard = ({ exercise, previousWorkouts, isActive }) => {
         return 'N/A';
     }
   };
-};
