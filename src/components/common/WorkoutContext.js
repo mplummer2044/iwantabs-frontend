@@ -86,17 +86,14 @@ export const WorkoutProvider = ({ children }) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
           const { tokens } = await fetchAuthSession();
-          
           const response = await axios.get(`${API_BASE}/templates`, {
-            headers: {
-              Authorization: tokens?.idToken?.toString()
-            }
+            headers: { Authorization: tokens?.idToken?.toString() }
           });
-      
+    
           const sortedHistory = (response.data.history || []).sort((a, b) => 
             new Date(b.createdAt) - new Date(a.createdAt)
           );
-      
+    
           dispatch({
             type: 'LOAD_TEMPLATES',
             payload: {
@@ -104,24 +101,18 @@ export const WorkoutProvider = ({ children }) => {
               history: sortedHistory
             }
           });
-      
         } catch (error) {
           dispatch({ type: 'SET_ERROR', payload: error.message });
         } finally {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
       };
-  
-    return (
-      <WorkoutContext.Provider value={{ 
-        state, 
-        dispatch, 
-        saveWorkout,
-        fetchWorkouts
-      }}>
-        {children}
-      </WorkoutContext.Provider>
-    );
-  };
+    
+      return (
+        <WorkoutContext.Provider value={{ state, dispatch, fetchWorkouts }}>
+          {children}
+        </WorkoutContext.Provider>
+      );
+    };
 
 export const useWorkout = () => useContext(WorkoutContext);

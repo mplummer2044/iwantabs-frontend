@@ -17,7 +17,8 @@ function App({ signOut, user }) {
   // State Variables
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
-  const [workoutTemplates, setWorkoutTemplates] = useState([]);
+  const { state, dispatch } = useWorkout();
+  const { workoutTemplates, workoutHistory, loading } = state;
   const [activeWorkout, setActiveWorkout] = useState(null); // MOVE THIS UP
   const [reps, setReps] = useState('');
   const [currentTemplate, setCurrentTemplate] = useState({
@@ -62,10 +63,8 @@ const handleTouchMove = (e) => {
 };
   
   // Track workout history and loading states
-  const [workoutHistory, setWorkoutHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const { dispatch } = useWorkout(); // Add with other hooks
+  
   
 
   // User Authentication & Data Loading Section
