@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { withAuthenticator } from '@aws-amplify/ui-react';
-import { useWorkout } from './components/common/WorkoutContext'
+import { useWorkout } from './components/common/WorkoutContext';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
-
-
-
 
 const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
 function App({ signOut, user }) {
-  // State Management Section
-  // -------------------------
-  // State Variables
+  // Context state management
+  const { state, dispatch, fetchWorkouts } = useWorkout();
+  const { workoutTemplates, workoutHistory, loading } = state;
+
+  // Local component state
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
-  const { state, dispatch } = useWorkout();
-  const { workoutTemplates, workoutHistory, loading } = state;
-  const [activeWorkout, setActiveWorkout] = useState(null); // MOVE THIS UP
-  const [reps, setReps] = useState('');
+  const [activeWorkout, setActiveWorkout] = useState(null);
   const [currentTemplate, setCurrentTemplate] = useState({
     name: '',
     exercises: [{
@@ -30,108 +25,48 @@ function App({ signOut, user }) {
       previousStats: null
     }]
   });
-  // ...rest of state declarations
-
-// Swipe Handlers
-const handleTouchStart = (e) => {
-  if (activeWorkout) {
-    setTouchStartY(e.touches[0].clientY);
-  }
-};
-
-const handleTouchEnd = (e) => {
-  if (!activeWorkout) return;
-  
-  const touchEndY = e.changedTouches[0].clientY;
-  const deltaY = touchStartY - touchEndY;
-
-  if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
-    if (deltaY > 0) {
-      setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
-    } else {
-      setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
-    }
-  }
-};
-
-// Add this right after handleTouchEnd
-const handleTouchMove = (e) => {
-  if (activeWorkout) {
-    if (e.target.closest('input')) return;
-    e.preventDefault();
-  }
-};
-  
-  // Track workout history and loading states
   const [currentUser, setCurrentUser] = useState(null);
-  
-  
 
-  // User Authentication & Data Loading Section
-  // ------------------------------------------
-  // In your user loading useEffect
+  // Swipe handlers
+  const handleTouchStart = (e) => {
+    if (activeWorkout) setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!activeWorkout) return;
+    const deltaY = touchStartY - e.changedTouches[0].clientY;
+    
+    if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
+      setCurrentExerciseIndex(prev => deltaY > 0 ? 
+        Math.min(prev + 1, activeWorkout.exerciseList.length - 1) : 
+        Math.max(prev - 1, 0)
+    )}
+  };
+
+  const handleTouchMove = (e) => {
+    if (activeWorkout && !e.target.closest('input')) e.preventDefault();
+  };
+
+  // User authentication and data loading
   useEffect(() => {
     const loadUser = async () => {
       try {
         const { tokens } = await fetchAuthSession();
-        if (!tokens?.idToken?.payload?.sub) {
-          throw new Error("No user ID in token");
+        if (tokens?.idToken?.payload?.sub) {
+          setCurrentUser({
+            username: tokens.idToken.payload.sub,
+            email: tokens.idToken.payload.email
+          });
+          fetchWorkouts();
         }
-        
-        setCurrentUser({
-          username: tokens.idToken.payload.sub,
-          email: tokens.idToken.payload.email
-        });
-        fetchWorkouts();
       } catch (err) {
-        console.log("User not signed in", err);
-        // Redirect to login if needed
+        console.error("Auth error:", err);
       }
     };
     loadUser();
-  }, []);
+  }, [fetchWorkouts]);
 
-  // Template and Workout Data Fetching
-  // ----------------------------------
-  useEffect(() => {
-    if (currentUser?.username) {
-      fetchWorkouts();
-    }
-  }, [currentUser]);
-
-  const fetchWorkouts = async () => {
-    if (!currentUser?.username) return;
-    
-    dispatch({ type: 'SET_LOADING', payload: true });
-    try {
-      const { tokens } = await fetchAuthSession();
-      const res = await axios.get(`${API_BASE}/templates`, {
-        headers: {
-          Authorization: tokens?.idToken?.toString()
-        }
-      });
-      
-      // Sort history by date descending
-      const sortedHistory = (res.data.history || []).sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      );
-  
-      dispatch({ 
-        type: 'LOAD_TEMPLATES', 
-        payload: {
-          templates: res.data.templates || [],
-          history: sortedHistory
-        }
-      });
-    } catch (err) {
-      dispatch({ type: 'SET_ERROR', payload: err.message });
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  };
-
-  // Template Creation Logic
-  // -----------------------
+  // Template creation
   const createWorkoutTemplate = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
@@ -140,34 +75,36 @@ const handleTouchMove = (e) => {
         ...currentTemplate,
         exercises: currentTemplate.exercises.map(ex => ({
           ...ex,
-          exerciseID: `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          exerciseID: `ex_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
         })),
         userID: currentUser.username
       };
 
       const response = await axios.post(`${API_BASE}/templates`, templateWithIDs, {
-        headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
+        headers: { Authorization: `Bearer ${tokens?.idToken}` }
       });
-        
+
       dispatch({ 
-        type: 'ADD_TEMPLATE', 
-        payload: response.data 
+        type: 'ADD_TEMPLATE',
+        payload: response.data
       });
-        setCurrentTemplate({ 
-          name: '', 
-          exercises: [{
-            name: '',
-            measurementType: 'weights',
-            sets: 1,
-            previousStats: null
-          }]
-        });
-      } catch (err) {
-        dispatch({ type: 'SET_ERROR', payload: err.message }); // Line 235
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false }); // Line 237
-      }
-    };
+      
+      setCurrentTemplate({ 
+        name: '', 
+        exercises: [{
+          name: '',
+          measurementType: 'weights',
+          sets: 1,
+          previousStats: null
+        }]
+      });
+
+    } catch (err) {
+      dispatch({ type: 'SET_ERROR', payload: err.message });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
 
  // Workout Session Management
 // --------------------------
