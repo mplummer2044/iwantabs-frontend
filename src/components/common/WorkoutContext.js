@@ -24,6 +24,11 @@ const reducer = (state, action) => {
       return { ...state, activeWorkout: action.payload };
     case 'SET_EXERCISE_INDEX':
       return { ...state, currentExerciseIndex: action.payload };
+    case 'ADD_TEMPLATE':
+        return {
+            ...state,
+            workoutTemplates: [...state.workoutTemplates, action.payload]
+        };
     case 'UPDATE_SET':
       // ... existing update logic
       case 'LOAD_TEMPLATES':

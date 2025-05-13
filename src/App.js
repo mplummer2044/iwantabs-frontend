@@ -144,7 +144,10 @@ const handleTouchMove = (e) => {
         headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
       });
         
-        setWorkoutTemplates(prev => [...prev, response.data]);
+      dispatch({ 
+        type: 'ADD_TEMPLATE', 
+        payload: response.data 
+      });
         setCurrentTemplate({ 
           name: '', 
           exercises: [{
