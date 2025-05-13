@@ -5,7 +5,7 @@ import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 
-const { dispatch } = useWorkout(); // Add with other hooks
+
 
 const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
@@ -18,6 +18,7 @@ function App({ signOut, user }) {
   const [workoutTemplates, setWorkoutTemplates] = useState([]);
   const [activeWorkout, setActiveWorkout] = useState(null); // MOVE THIS UP
   const [reps, setReps] = useState('');
+  const { dispatch } = useWorkout(); // Add with other hooks
   const [currentTemplate, setCurrentTemplate] = useState({
     name: '',
     exercises: [{
