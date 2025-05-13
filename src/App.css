@@ -144,18 +144,30 @@ input {
     background: white;
   }
 
+  .swipe-container {
+    position: relative;
+    height: 85vh;
+    overflow: hidden;
+  }
+  
   .exercise-card {
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     position: absolute;
     width: 100%;
-    height: calc(100vh - 120px); /* Match container height */
-    top: 0;
-    left: 0;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    border-radius: 12px;
-    background: white;
+    height: 100%;
     padding: 20px;
-    will-change: transform;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .set-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
   }
   
   .exercise-card-container {
@@ -299,4 +311,43 @@ input {
   .mobile-sets {
     display: none;
   }
+}
+
+/* Position Indicators */
+.position-indicators {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: #4CAF50;
+  transform: scale(1.2);
+}
+
+/* Save Button */
+.save-button {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  z-index: 1000;
 }
