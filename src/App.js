@@ -63,6 +63,7 @@ const handleTouchMove = (e) => {
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const { dispatch } = useWorkout(); // Add with other hooks
   
 
   // User Authentication & Data Loading Section
