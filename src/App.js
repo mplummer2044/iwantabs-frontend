@@ -102,7 +102,7 @@ const handleTouchMove = (e) => {
   const fetchWorkouts = async () => {
     if (!currentUser?.username) return;
     
-    setLoading(true);
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const { tokens } = await fetchAuthSession();
       const res = await axios.get(`${API_BASE}/templates`, {
@@ -116,12 +116,17 @@ const handleTouchMove = (e) => {
         new Date(b.createdAt) - new Date(a.createdAt)
       );
   
-      setWorkoutTemplates(res.data.templates || []);
-      setWorkoutHistory(sortedHistory);
+      dispatch({ 
+        type: 'LOAD_TEMPLATES', 
+        payload: {
+          templates: res.data.templates || [],
+          history: sortedHistory
+        }
+      });
     } catch (err) {
-      console.error("Fetch error:", err.response?.data || err.message);
+      dispatch({ type: 'SET_ERROR', payload: err.message });
     } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 

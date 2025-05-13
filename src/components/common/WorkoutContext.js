@@ -18,6 +18,12 @@ const reducer = (state, action) => {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
+    case 'LOAD_TEMPLATES':
+      return {
+        ...state,
+        workoutTemplates: action.payload.templates,
+        workoutHistory: action.payload.history
+      };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'SET_ACTIVE_WORKOUT':
@@ -30,13 +36,6 @@ const reducer = (state, action) => {
             workoutTemplates: [...state.workoutTemplates, action.payload]
         };
     case 'UPDATE_SET':
-      // ... existing update logic
-      case 'LOAD_TEMPLATES':
-        return {
-          ...state,
-          workoutTemplates: action.payload.templates,
-          workoutHistory: action.payload.history
-        };
     default:
       return state;
     case 'CLEAR_ACTIVE':
