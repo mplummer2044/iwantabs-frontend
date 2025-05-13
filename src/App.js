@@ -18,7 +18,6 @@ function App({ signOut, user }) {
   const [workoutTemplates, setWorkoutTemplates] = useState([]);
   const [activeWorkout, setActiveWorkout] = useState(null); // MOVE THIS UP
   const [reps, setReps] = useState('');
-  const { dispatch } = useWorkout(); // Add with other hooks
   const [currentTemplate, setCurrentTemplate] = useState({
     name: '',
     exercises: [{
