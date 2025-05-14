@@ -87,47 +87,35 @@ export const WorkoutProvider = ({ children }) => {
       }
     };
   
-    const fetchWorkouts = async () => {
-        dispatch({ type: 'SET_LOADING', payload: true });
-        try {
-            const { tokens } = await fetchAuthSession();
-            const response = await axios.get(`${API_BASE}/templates`, {
-                headers: { Authorization: tokens?.idToken?.toString() }
-            });
-    
-            // Ensure the response data is correctly structured
-            if (!response.data || !Array.isArray(response.data.templates)) {
-                throw new Error("Invalid response format");
+// src/components/common/WorkoutContext.js
+
+const fetchWorkouts = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+        const { tokens } = await fetchAuthSession();
+        const response = await axios.get(`${API_BASE}/templates`, {
+            headers: { Authorization: tokens?.idToken?.toString() }
+        });
+
+        // Check and log the response data to ensure correct format
+        console.log("Fetched Workouts:", response.data);
+
+        const templates = response.data.templates || [];
+        dispatch({
+            type: 'LOAD_TEMPLATES',
+            payload: {
+                templates: templates,
+                history: response.data.history || []
             }
-    
-            const templates = response.data.templates.map((template) => ({
-                ...template,
-                exercises: template.exercises || [],
-            }));
-    
-            const sortedHistory = (response.data.history || []).sort((a, b) =>
-                new Date(b.createdAt) - new Date(a.createdAt)
-            );
-    
-            dispatch({
-                type: 'LOAD_TEMPLATES',
-                payload: {
-                    templates: templates,
-                    history: sortedHistory,
-                }
-            });
-    
-            // Automatically set the first template as the active workout if none is set
-            if (templates.length > 0 && !state.activeWorkout) {
-                dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: templates[0] });
-            }
-        } catch (error) {
-            console.error("Error fetching workouts:", error);
-            dispatch({ type: 'SET_ERROR', payload: error.message });
-        } finally {
-            dispatch({ type: 'SET_LOADING', payload: false });
-        }
-    };
+        });
+    } catch (error) {
+        console.error("Error fetching workouts:", error);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+    } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+    }
+};
+
     
     
     

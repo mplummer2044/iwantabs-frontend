@@ -19,35 +19,47 @@ const ActiveWorkout = () => {
     console.log("Workout Templates:", workoutTemplates); // Log to verify data
   }, [workoutTemplates]);
 
-  return (
+// src/components/ActiveWorkout/index.jsx
+
+return (
     <div className="workout-container">
       {loading && <div className="loading-overlay">Loading...</div>}
       {error && <div className="error-banner">{error}</div>}
-
+  
       <PositionIndicators />
-      <SwipeContainer currentIndex={currentExerciseIndex}>
-        {workoutTemplates?.map((template, index) => (
-          <ErrorBoundary key={template.templateID}>
+  
+      {/* Render Template Cards if no active workout */}
+      {!activeWorkout && workoutTemplates.length > 0 && (
+        <div className="template-list">
+          <h2>Your Workout Templates</h2>
+          {workoutTemplates.map((template) => (
             <WorkoutTemplateCard
+              key={template.templateID}
               template={template}
-              onStart={startWorkout}
+              onStart={() => startWorkout(template)}
             />
-          </ErrorBoundary>
-        ))}
-        {activeWorkout?.exerciseList?.map((exercise, index) => (
-          <ErrorBoundary key={exercise.exerciseID}>
-            <ExerciseCard
-              exercise={exercise}
-              index={index}
-              isActive={index === currentExerciseIndex}
-              previousWorkouts={activeWorkout.previousWorkouts}
-            />
-          </ErrorBoundary>
-        ))}
-      </SwipeContainer>
+          ))}
+        </div>
+      )}
+  
+      {activeWorkout && (
+        <SwipeContainer currentIndex={currentExerciseIndex}>
+          {activeWorkout?.exerciseList?.map((exercise, index) => (
+            <ErrorBoundary key={exercise.exerciseID}>
+              <ExerciseCard
+                exercise={exercise}
+                index={index}
+                isActive={index === currentExerciseIndex}
+                previousWorkouts={activeWorkout.previousWorkouts}
+              />
+            </ErrorBoundary>
+          ))}
+        </SwipeContainer>
+      )}
+  
       <button className="save-button">Finish Workout</button>
     </div>
   );
-};
+  
 
 export default ActiveWorkout;
