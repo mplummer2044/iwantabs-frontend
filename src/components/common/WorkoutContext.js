@@ -6,13 +6,14 @@ const API_BASE = process.env.REACT_APP_API_BASE || 'https://4tb1rc24q2.execute-a
 const WorkoutContext = createContext();
 
 const initialState = {
-  activeWorkout: null,
-  currentExerciseIndex: 0,
-  workoutTemplates: [],
-  workoutHistory: [],
-  loading: false,
-  error: null
-};
+    activeWorkout: null,
+    currentExerciseIndex: 0,
+    workoutTemplates: [],  // Ensure it's an array
+    workoutHistory: [],
+    loading: false,
+    error: null,
+  };
+  
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -94,30 +95,40 @@ export const WorkoutProvider = ({ children }) => {
                 headers: { Authorization: tokens?.idToken?.toString() }
             });
     
-            const sortedHistory = (response.data.history || []).sort((a, b) => 
+            // Ensure the response data is correctly structured
+            if (!response.data || !Array.isArray(response.data.templates)) {
+                throw new Error("Invalid response format");
+            }
+    
+            const templates = response.data.templates.map((template) => ({
+                ...template,
+                exercises: template.exercises || [],
+            }));
+    
+            const sortedHistory = (response.data.history || []).sort((a, b) =>
                 new Date(b.createdAt) - new Date(a.createdAt)
             );
-    
-            const templates = response.data.templates || [];
     
             dispatch({
                 type: 'LOAD_TEMPLATES',
                 payload: {
                     templates: templates,
-                    history: sortedHistory
+                    history: sortedHistory,
                 }
             });
     
             // Automatically set the first template as the active workout if none is set
-            if (templates.length > 0) {
+            if (templates.length > 0 && !state.activeWorkout) {
                 dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: templates[0] });
             }
         } catch (error) {
+            console.error("Error fetching workouts:", error);
             dispatch({ type: 'SET_ERROR', payload: error.message });
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }
     };
+    
     
     
       return (

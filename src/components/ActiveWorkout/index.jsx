@@ -1,3 +1,4 @@
+// src/components/ActiveWorkout/index.jsx
 import { useEffect } from 'react';
 import { useWorkout } from '../common/WorkoutContext';
 import ExerciseCard from './ExerciseCard';
@@ -13,6 +14,10 @@ const ActiveWorkout = () => {
   const startWorkout = (template) => {
     dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: template });
   };
+
+  useEffect(() => {
+    console.log("Workout Templates:", workoutTemplates); // Log to verify data
+  }, [workoutTemplates]);
 
   return (
     <div className="workout-container">
