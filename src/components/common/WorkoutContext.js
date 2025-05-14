@@ -93,12 +93,15 @@ const fetchWorkouts = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
         const { tokens } = await fetchAuthSession();
+        const token = tokens?.idToken?.toString();
+        
+        if (!token) throw new Error("Authorization token not found");
+
         const response = await axios.get(`${API_BASE}/templates`, {
-            headers: { Authorization: tokens?.idToken?.toString() }
+            headers: { Authorization: `Bearer ${token}` }
         });
 
-        // Check and log the response data to ensure correct format
-        console.log("Fetched Workouts:", response.data);
+        console.log("Fetched Workouts:", response.data);  // Log to verify API response
 
         const templates = response.data.templates || [];
         dispatch({
@@ -115,6 +118,7 @@ const fetchWorkouts = async () => {
         dispatch({ type: 'SET_LOADING', payload: false });
     }
 };
+
 
     
     

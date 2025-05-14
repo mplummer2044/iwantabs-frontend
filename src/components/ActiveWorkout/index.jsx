@@ -16,7 +16,7 @@ const ActiveWorkout = () => {
   };
 
   useEffect(() => {
-    console.log("Workout Templates:", workoutTemplates); // Log to verify data
+    console.log("Workout Templates in ActiveWorkout:", workoutTemplates);
   }, [workoutTemplates]);
 
   return (
@@ -59,5 +59,8 @@ const ActiveWorkout = () => {
     </div>
   );
 };
+
+
+
 
 export default ActiveWorkout;

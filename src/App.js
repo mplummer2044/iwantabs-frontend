@@ -53,14 +53,20 @@ function App({ signOut, user }) {
           username: tokens.idToken.payload.sub,
           email: tokens.idToken.payload.email,
         });
-        // Fetch workouts after setting the user
-        await fetchWorkouts();
+  
+        // Fetch workouts only after user data is set
+        if (tokens?.idToken) {
+          await fetchWorkouts();
+        } else {
+          console.error("User authentication token is missing.");
+        }
       } catch (err) {
         console.error("User not signed in", err);
       }
     };
     loadUser();
   }, []);
+  
 
 
   // Fetch Workouts
