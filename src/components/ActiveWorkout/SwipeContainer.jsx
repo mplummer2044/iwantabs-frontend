@@ -2,6 +2,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SwipeContainer = ({ children, currentIndex }) => {
+  // Ensure children is an array and has at least one element
+  if (!Array.isArray(children) || children.length === 0) {
+    return <div className="swipe-container">No exercises to display.</div>;
+  }
+
   return (
     <div className="swipe-container">
       <AnimatePresence initial={false} custom={currentIndex}>
@@ -14,7 +19,7 @@ const SwipeContainer = ({ children, currentIndex }) => {
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           className="card-wrapper"
         >
-          {children[currentIndex]}
+          {children[currentIndex] || <div>No content</div>}
         </motion.div>
       </AnimatePresence>
     </div>
