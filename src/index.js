@@ -19,11 +19,13 @@ const AppWithAuth = withAuthenticator(App, {
 });
 
 // Create root and render the authenticated app
-ReactDOM.render(
-  <WorkoutProvider>
-    <App />
-  </WorkoutProvider>,
-  document.getElementById('root')
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <WorkoutProvider>
+      <AppWithAuth />
+    </WorkoutProvider>
+  </React.StrictMode>
 );
 
 // Performance monitoring (optional)
