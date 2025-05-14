@@ -1,26 +1,35 @@
+// src/App.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { withAuthenticator } from '@aws-amplify/ui-react';
-import { useWorkout } from './components/common/WorkoutContext'
+import { useWorkout } from './components/common/WorkoutContext';
 import ActiveWorkout from './components/ActiveWorkout';
 import WorkoutBuilder from './components/WorkoutBuilder';
 import WorkoutHistory from './components/WorkoutHistory';
-import { BottomNavigation, BottomNavigationAction } from '@mui/material';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
-import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import HistoryIcon from '@mui/icons-material/History';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
-
-
-
 
 const API_BASE = 'https://4tb1rc24q2.execute-api.us-east-1.amazonaws.com/Prod';
 
 function App({ signOut, user }) {
   const [view, setView] = useState('active');
-  const { state } = useWorkout();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(0);
+
+  // Correctly utilize useWorkout hook to get state and dispatch
+  const { state, dispatch } = useWorkout();
+  const { workoutTemplates, workoutHistory, loading, activeWorkout } = state;
+
+  const [currentTemplate, setCurrentTemplate] = useState({
+    name: '',
+    exercises: [{
+      name: '',
+      measurementType: 'weights',
+      sets: 1,
+      previousStats: null,
+    }],
+  });
 
   const renderView = () => {
     switch (view) {
@@ -33,44 +42,7 @@ function App({ signOut, user }) {
     }
   };
 
-// Swipe Handlers
-const handleTouchStart = (e) => {
-  if (activeWorkout) {
-    setTouchStartY(e.touches[0].clientY);
-  }
-};
-
-const handleTouchEnd = (e) => {
-  if (!activeWorkout) return;
-  
-  const touchEndY = e.changedTouches[0].clientY;
-  const deltaY = touchStartY - touchEndY;
-
-  if (Math.abs(deltaY) > 30 && !e.target.closest('input')) {
-    if (deltaY > 0) {
-      setCurrentExerciseIndex(prev => Math.min(prev + 1, activeWorkout.exerciseList.length - 1));
-    } else {
-      setCurrentExerciseIndex(prev => Math.max(prev - 1, 0));
-    }
-  }
-};
-
-// Add this right after handleTouchEnd
-const handleTouchMove = (e) => {
-  if (activeWorkout) {
-    if (e.target.closest('input')) return;
-    e.preventDefault();
-  }
-};
-  
-  // Track workout history and loading states
-  const [currentUser, setCurrentUser] = useState(null);
-  
-  
-
   // User Authentication & Data Loading Section
-  // ------------------------------------------
-  // In your user loading useEffect
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -81,48 +53,39 @@ const handleTouchMove = (e) => {
         
         setCurrentUser({
           username: tokens.idToken.payload.sub,
-          email: tokens.idToken.payload.email
+          email: tokens.idToken.payload.email,
         });
         fetchWorkouts();
       } catch (err) {
         console.log("User not signed in", err);
-        // Redirect to login if needed
       }
     };
     loadUser();
   }, []);
 
-  // Template and Workout Data Fetching
-  // ----------------------------------
-  useEffect(() => {
-    if (currentUser?.username) {
-      fetchWorkouts();
-    }
-  }, [currentUser]);
-
+  // Workout Data Fetching
   const fetchWorkouts = async () => {
     if (!currentUser?.username) return;
-    
+
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const { tokens } = await fetchAuthSession();
       const res = await axios.get(`${API_BASE}/templates`, {
         headers: {
-          Authorization: tokens?.idToken?.toString()
-        }
+          Authorization: `Bearer ${tokens?.idToken?.toString()}`,
+        },
       });
-      
-      // Sort history by date descending
-      const sortedHistory = (res.data.history || []).sort((a, b) => 
+
+      const sortedHistory = (res.data.history || []).sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
       );
-  
-      dispatch({ 
-        type: 'LOAD_TEMPLATES', 
+
+      dispatch({
+        type: 'LOAD_TEMPLATES',
         payload: {
           templates: res.data.templates || [],
-          history: sortedHistory
-        }
+          history: sortedHistory,
+        },
       });
     } catch (err) {
       dispatch({ type: 'SET_ERROR', payload: err.message });
@@ -131,95 +94,43 @@ const handleTouchMove = (e) => {
     }
   };
 
-  // Template Creation Logic
-  // -----------------------
-  const createWorkoutTemplate = async () => {
+  const startWorkout = async (template) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const { tokens } = await fetchAuthSession();
-      const templateWithIDs = {
-        ...currentTemplate,
-        exercises: currentTemplate.exercises.map(ex => ({
-          ...ex,
-          exerciseID: `ex_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
+        params: { templateID: template.templateID, limit: 2 },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokens?.idToken?.toString()}`,
+        },
+      });
+
+      const newWorkout = {
+        userID: currentUser.username,
+        workoutID: `workout_${Date.now()}`,
+        templateID: template.templateID,
+        createdAt: new Date().toISOString(),
+        exerciseList: template.exercises.map((exercise) => ({
+          ...exercise,
+          sets: Array(exercise.sets || 1).fill().map(() => ({
+            values: { reps: null, weight: null, distance: null, time: null },
+            status: 'pending',
+          })),
         })),
-        userID: currentUser.username
+        previousWorkouts: previousWorkouts.map((workout) => ({
+          ...workout,
+          exerciseList: workout.exerciseList || [],
+        })),
       };
 
-      const response = await axios.post(`${API_BASE}/templates`, templateWithIDs, {
-        headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
-      });
-        
-      dispatch({ 
-        type: 'ADD_TEMPLATE', 
-        payload: response.data 
-      });
-        setCurrentTemplate({ 
-          name: '', 
-          exercises: [{
-            name: '',
-            measurementType: 'weights',
-            sets: 1,
-            previousStats: null
-          }]
-        });
-      } catch (err) {
-        dispatch({ type: 'SET_ERROR', payload: err.message }); // Line 235
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false }); // Line 237
-      }
-    };
-
- // Workout Session Management
-// --------------------------
-const startWorkout = async (template) => {
-  dispatch({ type: 'SET_LOADING', payload: true }); // Line 250
-  try {
-    const { tokens } = await fetchAuthSession();
-    const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
-      params: { 
-        templateID: template.templateID,
-        limit: 2
-      },
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tokens?.idToken?.toString()}`
-      }
-    
-    });
-
-    setActiveWorkout({
-      userID: currentUser.username,
-      workoutID: `workout_${Date.now()}`,
-      templateID: template.templateID,
-      createdAt: new Date().toISOString(),
-      exerciseList: template.exercises.map(exercise => ({  // Changed from exercises to exerciseList
-        ...exercise,
-        exerciseID: exercise.exerciseID,
-        sets: Array(exercise.sets || 1).fill().map(() => ({
-          values: {
-            reps: null,
-            weight: null,
-            distance: null,
-            time: null
-          },
-          status: 'pending'
-        })),
-        previousStats: previousWorkouts.flatMap(workout => 
-          workout.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
-        )
-      })),
-      previousWorkouts: previousWorkouts.map(workout => ({
-        ...workout,
-        exerciseList: workout.exerciseList || workout.exercises || []
-      }))
-    });
-  } catch (err) {
-    dispatch({ type: 'SET_ERROR', payload: err.message }); // After line 288
-  } finally {
-    dispatch({ type: 'SET_LOADING', payload: false }); // Line 290
-  }
-};
+      dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: newWorkout });
+    } catch (err) {
+      dispatch({ type: 'SET_ERROR', payload: err.message });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
 
 const updateSetStatus = (exerciseIndex, setIndex, status) => {
   const updatedExercises = [...activeWorkout.exerciseList];
