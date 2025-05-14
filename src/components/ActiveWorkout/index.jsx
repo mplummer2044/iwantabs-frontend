@@ -19,9 +19,7 @@ const ActiveWorkout = () => {
     console.log("Workout Templates:", workoutTemplates); // Log to verify data
   }, [workoutTemplates]);
 
-// src/components/ActiveWorkout/index.jsx
-
-return (
+  return (
     <div className="workout-container">
       {loading && <div className="loading-overlay">Loading...</div>}
       {error && <div className="error-banner">{error}</div>}
@@ -60,6 +58,6 @@ return (
       <button className="save-button">Finish Workout</button>
     </div>
   );
-  
+};
 
 export default ActiveWorkout;
