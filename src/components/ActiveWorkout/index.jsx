@@ -23,10 +23,11 @@ const ActiveWorkout = () => {
     <div className="workout-container">
       {loading && <div className="loading-overlay">Loading...</div>}
       {error && <div className="error-banner">{error}</div>}
+      
+      {!loading && workoutTemplates.length === 0 && (
+        <div>No workouts available. Please create a new workout.</div>
+      )}
   
-      <PositionIndicators />
-  
-      {/* Render Template Cards if no active workout */}
       {!activeWorkout && workoutTemplates.length > 0 && (
         <div className="template-list">
           <h2>Your Workout Templates</h2>
@@ -42,11 +43,10 @@ const ActiveWorkout = () => {
   
       {activeWorkout && (
         <SwipeContainer currentIndex={currentExerciseIndex}>
-          {activeWorkout?.exerciseList?.map((exercise, index) => (
+          {activeWorkout.exerciseList.map((exercise, index) => (
             <ErrorBoundary key={exercise.exerciseID}>
               <ExerciseCard
                 exercise={exercise}
-                index={index}
                 isActive={index === currentExerciseIndex}
                 previousWorkouts={activeWorkout.previousWorkouts}
               />

@@ -53,7 +53,8 @@ function App({ signOut, user }) {
           username: tokens.idToken.payload.sub,
           email: tokens.idToken.payload.email,
         });
-        fetchWorkouts();
+        // Fetch workouts after setting the user
+        await fetchWorkouts();
       } catch (err) {
         console.error("User not signed in", err);
       }
@@ -61,10 +62,11 @@ function App({ signOut, user }) {
     loadUser();
   }, []);
 
+
   // Fetch Workouts
   const fetchWorkouts = async () => {
     if (!currentUser?.username) return;
-
+  
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const { tokens } = await fetchAuthSession();
@@ -73,15 +75,19 @@ function App({ signOut, user }) {
           Authorization: `Bearer ${tokens?.idToken?.toString()}`,
         },
       });
-
+  
+      // Validate and sort fetched data
+      const templates = Array.isArray(res.data.templates) ? res.data.templates : [];
       const sortedHistory = (res.data.history || []).sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
       );
-
+  
+      console.log("Loaded Templates:", templates);  // Log to verify
+  
       dispatch({
         type: 'LOAD_TEMPLATES',
         payload: {
-          templates: res.data.templates || [],
+          templates: templates,
           history: sortedHistory,
         },
       });
@@ -91,6 +97,7 @@ function App({ signOut, user }) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
+  
 
   // Start a Workout
   const startWorkout = async (template) => {
