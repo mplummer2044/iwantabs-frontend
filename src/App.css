@@ -385,3 +385,12 @@ input {
   border-radius: 8px;
   text-align: center;
 }
+
+header, footer {
+  text-align: center;
+  padding: 1rem;
+}
+
+footer button {
+  margin: 0.5rem;
+}
