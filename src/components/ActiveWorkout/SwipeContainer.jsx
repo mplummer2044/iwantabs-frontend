@@ -20,3 +20,5 @@ const SwipeContainer = ({ children, currentIndex }) => {
     </div>
   );
 };
+
+export default SwipeContainer;
