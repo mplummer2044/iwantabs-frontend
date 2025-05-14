@@ -1,22 +1,11 @@
 // src/components/ActiveWorkout/ExerciseCard.jsx
 import { useWorkout } from '../common/WorkoutContext';
 import React from 'react';
+
 const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
   const { dispatch } = useWorkout();
   const previousSets = previousWorkouts?.[0]?.exerciseList
     ?.find(e => e.exerciseID === exercise.exerciseID)?.sets || [];
-}, 
-// Custom comparison function
-(prevProps, nextProps) => {
-  return (
-    prevProps.isActive === nextProps.isActive &&
-    prevProps.exercise.exerciseID === nextProps.exercise.exerciseID &&
-    JSON.stringify(prevProps.exercise.sets) === 
-      JSON.stringify(nextProps.exercise.sets)
-  );
-});
-
-export default ExerciseCard;
 
   const handleUpdate = (setIndex, field, value) => {
     dispatch({
@@ -28,6 +17,19 @@ export default ExerciseCard;
         value
       }
     });
+  };
+
+  const renderPreviousStats = (set) => {
+    switch (set.values?.measurementType) {
+      case 'weights':
+        return `${set.values.weight} × ${set.values.reps}`;
+      case 'timed':
+        return set.values.time;
+      case 'cardio':
+        return `${set.values.distance} mi`;
+      default:
+        return 'N/A';
+    }
   };
 
   return (
@@ -66,15 +68,15 @@ export default ExerciseCard;
       </div>
     </div>
   );
-  const renderPreviousStats = (set) => {
-    switch (set.values?.measurementType) {
-      case 'weights':
-        return `${set.values.weight} × ${set.values.reps}`;
-      case 'timed':
-        return set.values.time;
-      case 'cardio':
-        return `${set.values.distance} mi`;
-      default:
-        return 'N/A';
-    }
-  };
+}, 
+// Custom comparison function for memoization
+(prevProps, nextProps) => {
+  return (
+    prevProps.isActive === nextProps.isActive &&
+    prevProps.exercise.exerciseID === nextProps.exercise.exerciseID &&
+    JSON.stringify(prevProps.exercise.sets) === 
+      JSON.stringify(nextProps.exercise.sets)
+  );
+});
+
+export default ExerciseCard;
