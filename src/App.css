@@ -394,3 +394,31 @@ header, footer {
 footer button {
   margin: 0.5rem;
 }
+
+.template-card {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0.5rem;
+  text-align: center;
+}
+
+.template-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.template-card button {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.template-card button:hover {
+  background: #45a049;
+}
