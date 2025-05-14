@@ -135,7 +135,7 @@ function App({ signOut, user }) {
 const updateSetStatus = (exerciseIndex, setIndex, status) => {
   const updatedExercises = [...activeWorkout.exerciseList];
   updatedExercises[exerciseIndex].sets[setIndex].status = status;
-  setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
+  dispatch({ ...activeWorkout, exerciseList: updatedExercises });
 };
 
 const cycleSetStatus = (exerciseIndex, setIndex) => {
@@ -213,7 +213,7 @@ const updateSetValue = (exerciseIndex, setIndex, field, value) => {
     }
   }
   
-  setActiveWorkout({ ...activeWorkout, exerciseList: updatedExercises });
+  dispatch({ ...activeWorkout, exerciseList: updatedExercises });
 };
 
 // Add this function before the return statement
@@ -280,7 +280,7 @@ const saveWorkoutProgress = async () => {
 
     console.log('Workout saved successfully:', response.data);
     await fetchWorkouts(); // Refresh your workout list
-    setActiveWorkout(null); // Close the active workout
+    dispatch(null); // Close the active workout
     console.log("Active Workout Structure:", JSON.stringify(activeWorkout, null, 2));
     return response.data;
   } catch (err) {
