@@ -42,7 +42,6 @@ function App({ signOut, user }) {
   };
 
   // User Authentication & Data Loading
-// src/App.js
 useEffect(() => {
   const loadUser = async () => {
     try {
@@ -69,6 +68,7 @@ useEffect(() => {
   };
   loadUser();
 }, []);
+
 
 
   // Fetch Workouts
@@ -107,7 +107,9 @@ useEffect(() => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }; 
+  };
+  
+  
 
   // Start a Workout
   const startWorkout = async (template) => {
