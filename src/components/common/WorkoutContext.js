@@ -14,7 +14,25 @@ const initialState = {
     error: null,
   };
   
-
+// Export the parseDynamoDBItem function to use it in other files
+export const parseDynamoDBItem = (item) => {
+    const parseValue = (val) => {
+      if (val.S !== undefined) return val.S;
+      if (val.N !== undefined) return Number(val.N);
+      if (val.BOOL !== undefined) return val.BOOL;
+      if (val.NULL !== undefined) return null;
+      if (val.L !== undefined) return val.L.map(parseValue);
+      if (val.M !== undefined) {
+        const obj = {};
+        for (const key in val.M) {
+          obj[key] = parseValue(val.M[key]);
+        }
+        return obj;
+      }
+      return val;
+    };
+    return parseValue(item);
+};
 const reducer = (state, action) => {
   switch (action.type) {
     case 'SET_LOADING':
@@ -93,26 +111,8 @@ export const WorkoutProvider = ({ children }) => {
       }
     };
   
-// src/components/common/WorkoutContext.js
 
-const parseDynamoDBItem = (item) => {
-    const parseValue = (val) => {
-      if (val.S !== undefined) return val.S;
-      if (val.N !== undefined) return Number(val.N);
-      if (val.BOOL !== undefined) return val.BOOL;
-      if (val.NULL !== undefined) return null;
-      if (val.L !== undefined) return val.L.map(parseValue);
-      if (val.M !== undefined) {
-        const obj = {};
-        for (const key in val.M) {
-          obj[key] = parseValue(val.M[key]);
-        }
-        return obj;
-      }
-      return val;
-    };
-    return parseValue(item);
-};
+
 
 console.log("Raw Workout Template:", template);
 

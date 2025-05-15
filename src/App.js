@@ -7,6 +7,7 @@ import { useWorkout } from './components/common/WorkoutContext';
 import ActiveWorkout from './components/ActiveWorkout';
 import WorkoutBuilder from './components/WorkoutBuilder';
 import WorkoutHistory from './components/WorkoutHistory';
+import { parseDynamoDBItem } from './components/common/WorkoutContext';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 
