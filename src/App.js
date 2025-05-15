@@ -78,42 +78,48 @@ function App({ signOut, user }) {
 
 
   // Fetch Workouts
-  const fetchWorkouts = async () => {
-    if (!currentUser?.username) {
-      console.warn("No user found while fetching workouts");
-      return;
+  const fetchWorkouts = async (username) => {
+    if (!username) {
+        console.warn("No username provided to fetch workouts.");
+        return;
     }
-  
+
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const { tokens } = await fetchAuthSession();
-      const res = await axios.get(`${API_BASE}/templates`, {
-        headers: {
-          Authorization: `Bearer ${tokens?.idToken?.toString()}`,
-        },
-      });
-  
-      const templates = Array.isArray(res.data.templates) ? res.data.templates : [];
-      const sortedHistory = (res.data.history || []).sort((a, b) =>
-        new Date(b.createdAt) - new Date(a.createdAt)
-      );
-  
-      console.log("Loaded Templates:", templates);  // Log to verify
-  
-      dispatch({
-        type: 'LOAD_TEMPLATES',
-        payload: {
-          templates: templates,
-          history: sortedHistory,
-        },
-      });
-    } catch (err) {
-      console.error("Error fetching workouts:", err.message);
-      dispatch({ type: 'SET_ERROR', payload: err.message });
+        const { tokens } = await fetchAuthSession();
+        const token = tokens?.idToken?.toString();
+
+        if (!token) throw new Error("Authorization token not found");
+
+        console.log(`Fetching workouts for user: ${username}`);
+        const response = await axios.get(`${API_BASE}/templates`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        console.log("API Response:", response.data);
+
+        if (!Array.isArray(response.data.templates)) {
+            console.warn("Expected templates as an array, got:", response.data);
+        }
+
+        const templates = response.data.templates || [];
+        console.log("Extracted Templates:", templates);
+
+        dispatch({
+            type: 'LOAD_TEMPLATES',
+            payload: {
+                templates: templates,
+                history: response.data.history || []
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching workouts:", error.response?.data || error.message);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+};
+
   
   
   
