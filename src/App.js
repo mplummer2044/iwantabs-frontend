@@ -115,7 +115,7 @@ function App({ signOut, user }) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
-  
+
 // Start a Workout
 const startWorkout = async (template) => {
   dispatch({ type: 'SET_LOADING', payload: true });
@@ -131,32 +131,23 @@ const startWorkout = async (template) => {
 
     console.log("Raw Template Data:", template);
 
-    // Check if the exercises need parsing
+    // Use the correct key for exercises from the template
     let exerciseList = [];
-    if (template.exercises && Array.isArray(template.exercises)) {
-      // Case 1: Already parsed exercise list
-      exerciseList = template.exercises;
-    } else if (template.exercises && Array.isArray(template.exercises.L)) {
-      // Case 2: DynamoDB formatted exercise list
-      exerciseList = template.exercises.L.map((exercise) => {
-        // Parse each item in the list
-        const parsedExercise = parseDynamoDBItem(exercise.M);  // Properly extract the 'M' object
-        console.log("Parsed Exercise from DynamoDB format:", parsedExercise);
-        return {
-          ...parsedExercise,
-          sets: Array(parsedExercise.sets || 1).fill().map(() => ({
-            values: { reps: null, weight: null, distance: null, time: null },
-            status: 'pending',
-          })),
-        };
-      });
+    if (Array.isArray(template.exercises)) {
+      exerciseList = template.exercises.map((exercise) => ({
+        ...exercise,
+        sets: Array(exercise.sets || 1).fill().map(() => ({
+          values: { reps: null, weight: null, distance: null, time: null },
+          status: 'pending',
+        })),
+      }));
     }
 
     // Log the parsed exercise list to verify correctness
     if (!Array.isArray(exerciseList) || exerciseList.length === 0) {
-      console.warn("Parsed exercise list is not valid or empty:", exerciseList);
+      console.warn("Exercise list is not an array or is empty:", exerciseList);
     } else {
-      console.log("Parsed Exercise List:", exerciseList);
+      console.log("Correctly Parsed Exercise List:", exerciseList);
     }
 
     const newWorkout = {
@@ -164,7 +155,7 @@ const startWorkout = async (template) => {
       workoutID: `workout_${Date.now()}`,
       templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exerciseList: exerciseList,
+      exerciseList: exerciseList,  // Correctly set the exercise list
       previousWorkouts: previousWorkouts.map((workout) => ({
         ...workout,
         exerciseList: workout.exerciseList || [],
@@ -179,6 +170,7 @@ const startWorkout = async (template) => {
     dispatch({ type: 'SET_LOADING', payload: false });
   }
 };
+
 
 
 
