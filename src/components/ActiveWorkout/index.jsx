@@ -50,19 +50,22 @@ const ActiveWorkout = () => {
         </div>
       )}
   
-      {activeWorkout && (
-        <SwipeContainer currentIndex={currentExerciseIndex}>
-          {activeWorkout.exerciseList.map((exercise, index) => (
-            <ErrorBoundary key={exercise.exerciseID}>
-              <ExerciseCard
-                exercise={exercise}
-                isActive={index === currentExerciseIndex}
-                previousWorkouts={activeWorkout.previousWorkouts}
-              />
-            </ErrorBoundary>
-          ))}
-        </SwipeContainer>
-      )}
+      {activeWorkout && Array.isArray(activeWorkout.exerciseList) && activeWorkout.exerciseList.length > 0 ? (
+      <SwipeContainer currentIndex={currentExerciseIndex}>
+        {activeWorkout.exerciseList.map((exercise, index) => (
+          <ErrorBoundary key={exercise.exerciseID}>
+            <ExerciseCard
+              exercise={exercise}
+              isActive={index === currentExerciseIndex}
+              previousWorkouts={activeWorkout.previousWorkouts}
+            />
+          </ErrorBoundary>
+        ))}
+      </SwipeContainer>
+    ) : (
+      <div>No exercises available in this workout.</div>
+    )}
+
   
       <button className="save-button">Finish Workout</button>
     </div>
