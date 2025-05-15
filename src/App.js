@@ -151,21 +151,35 @@ function App({ signOut, user }) {
     return Math.round((end - start) / (1000 * 60)); // Minutes
   };
 
-  // UI Components
-  return (
-    <div>
-      <header>
-        <h1>I WANT ABS 🏋️</h1>
-        {user && <button onClick={signOut}>Sign Out</button>}
-      </header>
-      {renderView()}
-      <footer>
-        <button onClick={() => setView('active')}>Active Workout</button>
-        <button onClick={() => setView('builder')}>Build Workout</button>
-        <button onClick={() => setView('history')}>History</button>
-      </footer>
-    </div>
-  );
+ const printAuthToken = async () => {
+  try {
+    const { tokens } = await fetchAuthSession();
+    const token = tokens?.idToken?.toString();
+    if (!token) throw new Error("Token not found");
+    console.log("Your Auth Token:", token);
+    alert("Auth Token printed in the console!");
+  } catch (err) {
+    console.error("Error fetching token:", err);
+  }
+};
+
+//UI Components
+return (
+  <div>
+    <header>
+      <h1>I WANT ABS 🏋️</h1>
+      {user && <button onClick={signOut}>Sign Out</button>}
+      <button onClick={printAuthToken}>Print Auth Token</button>
+    </header>
+    {renderView()}
+    <footer>
+      <button onClick={() => setView('active')}>Active Workout</button>
+      <button onClick={() => setView('builder')}>Build Workout</button>
+      <button onClick={() => setView('history')}>History</button>
+    </footer>
+  </div>
+);
 }
+
 
 export default withAuthenticator(App);
