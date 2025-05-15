@@ -20,11 +20,12 @@ const reducer = (state, action) => {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'LOAD_TEMPLATES':
-      return {
-        ...state,
-        workoutTemplates: action.payload.templates,
-        workoutHistory: action.payload.history
-      };
+        console.log("Loading templates into state:", action.payload.templates);
+        return {
+            ...state,
+            workoutTemplates: action.payload.templates,
+            workoutHistory: action.payload.history
+        };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'SET_ACTIVE_WORKOUT':
@@ -111,37 +112,43 @@ const parseDynamoDBItem = (item) => {
   };
   
   const fetchWorkouts = async () => {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      try {
-          const { tokens } = await fetchAuthSession();
-          const token = tokens?.idToken?.toString();
-  
-          if (!token) throw new Error("Authorization token not found");
-  
-          const response = await axios.get(`${API_BASE}/templates`, {
-              headers: { Authorization: `Bearer ${token}` }
-          });
-  
-          console.log("Raw API Response:", response.data);
-  
-          // Parse each workout template from the response
-          const templates = response.data.templates?.map(parseDynamoDBItem) || [];
-          console.log("Parsed Templates:", templates);
-  
-          dispatch({
-              type: 'LOAD_TEMPLATES',
-              payload: {
-                  templates: templates,
-                  history: response.data.history?.map(parseDynamoDBItem) || []
-              }
-          });
-      } catch (error) {
-          console.error("Error fetching workouts:", error.response?.data || error.message);
-          dispatch({ type: 'SET_ERROR', payload: error.message });
-      } finally {
-          dispatch({ type: 'SET_LOADING', payload: false });
-      }
-  };
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+        const { tokens } = await fetchAuthSession();
+        const token = tokens?.idToken?.toString();
+
+        if (!token) throw new Error("Authorization token not found");
+
+        console.log("Fetching workouts from API...");
+        const response = await axios.get(`${API_BASE}/templates`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        console.log("API Response:", response.data);
+
+        // Directly check if templates are in the response
+        if (!Array.isArray(response.data.templates)) {
+            console.warn("Expected templates as an array, got:", response.data);
+        }
+
+        const templates = response.data.templates || [];
+        console.log("Extracted Templates:", templates);
+
+        dispatch({
+            type: 'LOAD_TEMPLATES',
+            payload: {
+                templates: templates,
+                history: response.data.history || []
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching workouts:", error.response?.data || error.message);
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+    } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+    }
+};
+
     
       return (
         <WorkoutContext.Provider value={{ state, dispatch, fetchWorkouts }}>

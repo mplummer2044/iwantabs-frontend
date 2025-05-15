@@ -54,18 +54,17 @@ function App({ signOut, user }) {
           email: tokens.idToken.payload.email,
         });
   
-        // Fetch workouts only after user data is set
-        if (tokens?.idToken) {
-          await fetchWorkouts();
-        } else {
-          console.error("User authentication token is missing.");
-        }
+        console.log("User successfully loaded:", tokens.idToken.payload.sub);
+  
+        // Fetch workouts after user data is set
+        await fetchWorkouts();
       } catch (err) {
         console.error("User not signed in", err);
       }
     };
     loadUser();
   }, []);
+  
   
 
 

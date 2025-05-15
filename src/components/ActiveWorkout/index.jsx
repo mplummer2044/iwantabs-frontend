@@ -16,11 +16,16 @@ const ActiveWorkout = () => {
   };
 
   useEffect(() => {
-    console.log("Workout Templates in ActiveWorkout:", workoutTemplates);
-    workoutTemplates.forEach((template, idx) => {
-      console.log(`Template ${idx + 1}:`, template);
-    });
+    console.log("Workout Templates in ActiveWorkout (from state):", workoutTemplates);
+    if (Array.isArray(workoutTemplates) && workoutTemplates.length > 0) {
+      workoutTemplates.forEach((template, idx) => {
+        console.log(`Template ${idx + 1}:`, template);
+      });
+    } else {
+      console.warn("No templates loaded in state");
+    }
   }, [workoutTemplates]);
+  
   
 
   return (
