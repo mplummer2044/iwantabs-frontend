@@ -133,10 +133,15 @@ const startWorkout = async (template) => {
 
     // Check if the exercises need parsing
     let exerciseList = [];
-    if (template.exercises && Array.isArray(template.exercises.L)) {
+    if (template.exercises && Array.isArray(template.exercises)) {
+      // Case 1: Already parsed exercise list
+      exerciseList = template.exercises;
+    } else if (template.exercises && Array.isArray(template.exercises.L)) {
+      // Case 2: DynamoDB formatted exercise list
       exerciseList = template.exercises.L.map((exercise) => {
-        const parsedExercise = parseDynamoDBItem(exercise);
-        console.log("Parsed Exercise:", parsedExercise);
+        // Parse each item in the list
+        const parsedExercise = parseDynamoDBItem(exercise.M);  // Properly extract the 'M' object
+        console.log("Parsed Exercise from DynamoDB format:", parsedExercise);
         return {
           ...parsedExercise,
           sets: Array(parsedExercise.sets || 1).fill().map(() => ({
@@ -145,21 +150,11 @@ const startWorkout = async (template) => {
           })),
         };
       });
-    } else if (Array.isArray(template.exercises)) {
-      exerciseList = template.exercises.map((exercise) => {
-        return {
-          ...exercise,
-          sets: Array(exercise.sets || 1).fill().map(() => ({
-            values: { reps: null, weight: null, distance: null, time: null },
-            status: 'pending',
-          })),
-        };
-      });
     }
 
     // Log the parsed exercise list to verify correctness
-    if (exerciseList.length === 0) {
-      console.warn("The selected workout template has no valid exercises.");
+    if (!Array.isArray(exerciseList) || exerciseList.length === 0) {
+      console.warn("Parsed exercise list is not valid or empty:", exerciseList);
     } else {
       console.log("Parsed Exercise List:", exerciseList);
     }
@@ -187,10 +182,11 @@ const startWorkout = async (template) => {
 
 
 
+
   //Verify Start of Workout
   useEffect(() => {
     if (activeWorkout) {
-      console.log("Active Workout Data:", activeWorkout);
+      console.log("Active Workout Data:", JSON.stringify(activeWorkout, null, 2));
       if (!Array.isArray(activeWorkout.exerciseList)) {
         console.warn("Exercise list is not an array:", activeWorkout.exerciseList);
       } else if (activeWorkout.exerciseList.length === 0) {
@@ -200,6 +196,7 @@ const startWorkout = async (template) => {
       }
     }
   }, [activeWorkout]);
+  
   
   
   // Calculate Workout Duration
