@@ -96,7 +96,6 @@ export const WorkoutProvider = ({ children }) => {
 // src/components/common/WorkoutContext.js
 
 const parseDynamoDBItem = (item) => {
-    // Helper function to parse DynamoDB responses
     const parseValue = (val) => {
       if (val.S !== undefined) return val.S;
       if (val.N !== undefined) return Number(val.N);
@@ -112,9 +111,11 @@ const parseDynamoDBItem = (item) => {
       }
       return val;
     };
-  
     return parseValue(item);
-  };
+};
+
+console.log("Raw Workout Template:", template);
+
   
   const fetchWorkouts = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });

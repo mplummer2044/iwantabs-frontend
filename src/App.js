@@ -119,54 +119,69 @@ function App({ signOut, user }) {
   
 
   // Start a Workout
-  // Start a Workout
-const startWorkout = async (template) => {
-  dispatch({ type: 'SET_LOADING', payload: true });
-  try {
-    const { tokens } = await fetchAuthSession();
-    const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
-      params: { templateID: template.templateID, limit: 2 },
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${tokens?.idToken?.toString()}`,
-      },
-    });
-
-    // Check if the template has exercises
-    const exerciseList = Array.isArray(template.exercises) ? template.exercises.map((exercise) => ({
-      ...exercise,
-      sets: Array(exercise.sets || 1).fill().map(() => ({
-        values: { reps: null, weight: null, distance: null, time: null },
-        status: 'pending',
-      })),
-    })) : [];
-
-    if (exerciseList.length === 0) {
-      console.warn("The selected workout template has no exercises.");
+  const startWorkout = async (template) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      const { tokens } = await fetchAuthSession();
+      const { data: previousWorkouts = [] } = await axios.get(`${API_BASE}/history`, {
+        params: { templateID: template.templateID, limit: 2 },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tokens?.idToken?.toString()}`,
+        },
+      });
+  
+      // Properly parse the exercise list
+      const exerciseList = Array.isArray(template.exercises) ? template.exercises.map((exercise) => {
+        const parsedExercise = typeof exercise === 'object' ? exercise : parseDynamoDBItem(exercise);
+        return {
+          ...parsedExercise,
+          sets: Array(parsedExercise.sets || 1).fill().map(() => ({
+            values: { reps: null, weight: null, distance: null, time: null },
+            status: 'pending',
+          })),
+        };
+      }) : [];
+  
+      if (exerciseList.length === 0) {
+        console.warn("The selected workout template has no exercises.");
+      } else {
+        console.log("Parsed Exercise List:", exerciseList);
+      }
+  
+      const newWorkout = {
+        userID: currentUser.username,
+        workoutID: `workout_${Date.now()}`,
+        templateID: template.templateID,
+        createdAt: new Date().toISOString(),
+        exerciseList: exerciseList,
+        previousWorkouts: previousWorkouts.map((workout) => ({
+          ...workout,
+          exerciseList: workout.exerciseList || [],
+        })),
+      };
+  
+      dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: newWorkout });
+    } catch (err) {
+      dispatch({ type: 'SET_ERROR', payload: err.message });
+      console.error("Error starting workout:", err.message);
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
+  };
 
-    const newWorkout = {
-      userID: currentUser.username,
-      workoutID: `workout_${Date.now()}`,
-      templateID: template.templateID,
-      createdAt: new Date().toISOString(),
-      exerciseList: exerciseList,  // Safely set the exercise list
-      previousWorkouts: previousWorkouts.map((workout) => ({
-        ...workout,
-        exerciseList: workout.exerciseList || [],
-      })),
-    };
-
-    dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: newWorkout });
-  } catch (err) {
-    dispatch({ type: 'SET_ERROR', payload: err.message });
-    console.error("Error starting workout:", err.message);
-  } finally {
-    dispatch({ type: 'SET_LOADING', payload: false });
-  }
-};
-
-
+  //Verify Start of Workout
+  useEffect(() => {
+    if (activeWorkout) {
+      console.log("Active Workout Data:", activeWorkout);
+      if (!Array.isArray(activeWorkout.exerciseList)) {
+        console.warn("Exercise list is not an array:", activeWorkout.exerciseList);
+      } else if (activeWorkout.exerciseList.length === 0) {
+        console.warn("Exercise list is empty:", activeWorkout.exerciseList);
+      }
+    }
+  }, [activeWorkout]);
+  
   // Calculate Workout Duration
   const calculateWorkoutDuration = (workout) => {
     if (!workout.createdAt || !workout.completedAt) return '--';
@@ -191,6 +206,4 @@ return (
   </div>
 );
 }
-
-
 export default withAuthenticator(App);
