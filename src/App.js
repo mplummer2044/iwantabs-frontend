@@ -116,10 +116,6 @@ function App({ signOut, user }) {
     }
   };
   
-  
-  
-
-  // Start a Workout
 // Start a Workout
 const startWorkout = async (template) => {
   dispatch({ type: 'SET_LOADING', payload: true });
@@ -133,16 +129,24 @@ const startWorkout = async (template) => {
       },
     });
 
-    console.log("Raw Template Data:", template);  // Log to check the template structure
+    console.log("Raw Template Data:", template);
 
     // Check if the exercises need parsing
     let exerciseList = [];
-    if (Array.isArray(template.exercises)) {
+    if (template.exercises && Array.isArray(template.exercises.L)) {
+      exerciseList = template.exercises.L.map((exercise) => {
+        const parsedExercise = parseDynamoDBItem(exercise);
+        console.log("Parsed Exercise:", parsedExercise);
+        return {
+          ...parsedExercise,
+          sets: Array(parsedExercise.sets || 1).fill().map(() => ({
+            values: { reps: null, weight: null, distance: null, time: null },
+            status: 'pending',
+          })),
+        };
+      });
+    } else if (Array.isArray(template.exercises)) {
       exerciseList = template.exercises.map((exercise) => {
-        // Apply parsing if necessary
-        if (typeof exercise !== 'object' || exercise === null) {
-          exercise = parseDynamoDBItem(exercise);
-        }
         return {
           ...exercise,
           sets: Array(exercise.sets || 1).fill().map(() => ({
@@ -182,6 +186,7 @@ const startWorkout = async (template) => {
 };
 
 
+
   //Verify Start of Workout
   useEffect(() => {
     if (activeWorkout) {
@@ -190,9 +195,12 @@ const startWorkout = async (template) => {
         console.warn("Exercise list is not an array:", activeWorkout.exerciseList);
       } else if (activeWorkout.exerciseList.length === 0) {
         console.warn("Exercise list is empty:", activeWorkout.exerciseList);
+      } else {
+        console.log("Exercise list loaded correctly:", activeWorkout.exerciseList);
       }
     }
   }, [activeWorkout]);
+  
   
   // Calculate Workout Duration
   const calculateWorkoutDuration = (workout) => {
