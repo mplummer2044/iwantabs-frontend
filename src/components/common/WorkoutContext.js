@@ -20,12 +20,17 @@ const reducer = (state, action) => {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'LOAD_TEMPLATES':
-        console.log("Loading templates into state:", action.payload.templates);
-        return {
-            ...state,
-            workoutTemplates: action.payload.templates,
-            workoutHistory: action.payload.history
-        };
+    console.log("Setting templates in state:", action.payload.templates);
+    if (Array.isArray(action.payload.templates) && action.payload.templates.length > 0) {
+        console.log("Templates loaded successfully:", action.payload.templates);
+    } else {
+        console.warn("Templates not loaded correctly or empty:", action.payload.templates);
+    }
+    return {
+        ...state,
+        workoutTemplates: action.payload.templates,
+        workoutHistory: action.payload.history,
+    };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'SET_ACTIVE_WORKOUT':

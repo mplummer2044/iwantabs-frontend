@@ -42,35 +42,41 @@ function App({ signOut, user }) {
   };
 
   // User Authentication & Data Loading
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const { tokens } = await fetchAuthSession();
-        if (!tokens?.idToken?.payload?.sub) {
-          throw new Error("No user ID in token");
-        }
-        setCurrentUser({
-          username: tokens.idToken.payload.sub,
-          email: tokens.idToken.payload.email,
-        });
-  
-        console.log("User successfully loaded:", tokens.idToken.payload.sub);
-  
-        // Fetch workouts after user data is set
-        await fetchWorkouts();
-      } catch (err) {
-        console.error("User not signed in", err);
+// src/App.js
+useEffect(() => {
+  const loadUser = async () => {
+    try {
+      const { tokens } = await fetchAuthSession();
+      if (!tokens?.idToken?.payload?.sub) {
+        throw new Error("No user ID in token");
       }
-    };
-    loadUser();
-  }, []);
-  
-  
+
+      // Set the user and wait for the state update
+      const user = {
+        username: tokens.idToken.payload.sub,
+        email: tokens.idToken.payload.email,
+      };
+      setCurrentUser(user);
+      console.log("User successfully loaded:", user);
+
+      // Wait for state to update, then fetch workouts
+      setTimeout(async () => {
+        await fetchWorkouts();
+      }, 100);
+    } catch (err) {
+      console.error("User not signed in", err);
+    }
+  };
+  loadUser();
+}, []);
 
 
   // Fetch Workouts
   const fetchWorkouts = async () => {
-    if (!currentUser?.username) return;
+    if (!currentUser?.username) {
+      console.warn("No user found while fetching workouts");
+      return;
+    }
   
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
@@ -81,7 +87,6 @@ function App({ signOut, user }) {
         },
       });
   
-      // Validate and sort fetched data
       const templates = Array.isArray(res.data.templates) ? res.data.templates : [];
       const sortedHistory = (res.data.history || []).sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
@@ -97,12 +102,12 @@ function App({ signOut, user }) {
         },
       });
     } catch (err) {
+      console.error("Error fetching workouts:", err.message);
       dispatch({ type: 'SET_ERROR', payload: err.message });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
-  
+  }; 
 
   // Start a Workout
   const startWorkout = async (template) => {
@@ -151,25 +156,12 @@ function App({ signOut, user }) {
     return Math.round((end - start) / (1000 * 60)); // Minutes
   };
 
- const printAuthToken = async () => {
-  try {
-    const { tokens } = await fetchAuthSession();
-    const token = tokens?.idToken?.toString();
-    if (!token) throw new Error("Token not found");
-    console.log("Your Auth Token:", token);
-    alert("Auth Token printed in the console!");
-  } catch (err) {
-    console.error("Error fetching token:", err);
-  }
-};
-
 //UI Components
 return (
   <div>
     <header>
       <h1>I WANT ABS 🏋️</h1>
       {user && <button onClick={signOut}>Sign Out</button>}
-      <button onClick={printAuthToken}>Print Auth Token</button>
     </header>
     {renderView()}
     <footer>
