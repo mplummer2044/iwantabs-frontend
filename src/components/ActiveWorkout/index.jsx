@@ -17,7 +17,11 @@ const ActiveWorkout = () => {
 
   useEffect(() => {
     console.log("Workout Templates in ActiveWorkout:", workoutTemplates);
+    workoutTemplates.forEach((template, idx) => {
+      console.log(`Template ${idx + 1}:`, template);
+    });
   }, [workoutTemplates]);
+  
 
   return (
     <div className="workout-container">

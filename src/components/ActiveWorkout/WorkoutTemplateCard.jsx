@@ -16,3 +16,4 @@ const WorkoutTemplateCard = ({ template, onStart }) => {
 };
 
 export default WorkoutTemplateCard;
+
