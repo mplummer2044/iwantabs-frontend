@@ -110,11 +110,6 @@ export const WorkoutProvider = ({ children }) => {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
-  
-
-
-
-console.log("Raw Workout Template:", template);
 
   
   const fetchWorkouts = async () => {
