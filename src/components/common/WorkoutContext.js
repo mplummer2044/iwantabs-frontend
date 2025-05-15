@@ -30,7 +30,7 @@ const reducer = (state, action) => {
         ...state,
         workoutTemplates: action.payload.templates,
         workoutHistory: action.payload.history,
-    };
+    }; 
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'SET_ACTIVE_WORKOUT':

@@ -71,6 +71,7 @@ useEffect(() => {
 
 
 
+
   // Fetch Workouts
   const fetchWorkouts = async () => {
     if (!currentUser?.username) {
@@ -108,6 +109,7 @@ useEffect(() => {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
+  
   
   
 
