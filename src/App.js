@@ -178,16 +178,17 @@ const startWorkout = async (template) => {
   //Verify Start of Workout
   useEffect(() => {
     if (activeWorkout) {
-      console.log("Active Workout Data:", JSON.stringify(activeWorkout, null, 2));
+      console.log("Active Workout Data (after fix):", JSON.stringify(activeWorkout, null, 2));
       if (!Array.isArray(activeWorkout.exerciseList)) {
-        console.warn("Exercise list is not an array:", activeWorkout.exerciseList);
+        console.warn("Exercise list is not an array (post-fix):", activeWorkout.exerciseList);
       } else if (activeWorkout.exerciseList.length === 0) {
-        console.warn("Exercise list is empty:", activeWorkout.exerciseList);
+        console.warn("Exercise list is empty (post-fix):", activeWorkout.exerciseList);
       } else {
-        console.log("Exercise list loaded correctly:", activeWorkout.exerciseList);
+        console.log("Exercise list loaded correctly (post-fix):", activeWorkout.exerciseList);
       }
     }
   }, [activeWorkout]);
+  
   
   
   
