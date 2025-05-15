@@ -42,32 +42,37 @@ function App({ signOut, user }) {
   };
 
   // User Authentication & Data Loading
-useEffect(() => {
-  const loadUser = async () => {
-    try {
-      const { tokens } = await fetchAuthSession();
-      if (!tokens?.idToken?.payload?.sub) {
-        throw new Error("No user ID in token");
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        console.log("Loading user...");
+        const { tokens } = await fetchAuthSession();
+        if (!tokens?.idToken?.payload?.sub) {
+          throw new Error("No user ID in token");
+        }
+  
+        // Properly set the user
+        const user = {
+          username: tokens.idToken.payload.sub,
+          email: tokens.idToken.payload.email,
+        };
+        setCurrentUser(user);
+        console.log("User successfully loaded:", user);
+      } catch (err) {
+        console.error("User not signed in", err);
       }
-
-      // Set the user and wait for the state update
-      const user = {
-        username: tokens.idToken.payload.sub,
-        email: tokens.idToken.payload.email,
-      };
-      setCurrentUser(user);
-      console.log("User successfully loaded:", user);
-
-      // Wait for state to update, then fetch workouts
-      setTimeout(async () => {
-        await fetchWorkouts();
-      }, 100);
-    } catch (err) {
-      console.error("User not signed in", err);
+    };
+    loadUser();
+  }, []);
+  
+  // Separate useEffect to fetch workouts AFTER user is set
+  useEffect(() => {
+    if (currentUser?.username) {
+      console.log("User data confirmed, now fetching workouts...");
+      fetchWorkouts(currentUser.username);
     }
-  };
-  loadUser();
-}, []);
+  }, [currentUser]);  // Trigger when currentUser changes
+  
 
 
 
