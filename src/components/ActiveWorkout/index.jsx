@@ -66,6 +66,7 @@ const ActiveWorkout = () => {
       <div>No exercises available in this workout.</div>
     )}
 
+
  
       <button className="save-button">Finish Workout</button>
     </div>

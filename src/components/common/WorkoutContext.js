@@ -51,8 +51,15 @@ const reducer = (state, action) => {
     }; 
     case 'SET_ERROR':
       return { ...state, error: action.payload };
-    case 'SET_ACTIVE_WORKOUT':
-      return { ...state, activeWorkout: action.payload };
+    case 'SET_ACTIVE_WORKOUT': {
+    const workoutData = action.payload;
+    // Normalize to ensure the exerciseList key is used
+    if (!Array.isArray(workoutData.exerciseList) && Array.isArray(workoutData.exercises)) {
+        workoutData.exerciseList = workoutData.exercises;
+        delete workoutData.exercises;  // Remove redundant key
+    }
+    return { ...state, activeWorkout: workoutData };
+    }   
     case 'SET_EXERCISE_INDEX':
       return { ...state, currentExerciseIndex: action.payload };
     case 'ADD_TEMPLATE':
