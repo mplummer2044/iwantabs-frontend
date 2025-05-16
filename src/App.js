@@ -131,7 +131,7 @@ const startWorkout = async (template) => {
 
     console.log("Raw Template Data:", template);
 
-    // Ensure exerciseList is correctly set
+    // Normalize exercise list to match expected structure
     let exerciseList = [];
     if (Array.isArray(template.exercises)) {
       exerciseList = template.exercises.map((exercise) => ({
@@ -155,12 +155,14 @@ const startWorkout = async (template) => {
       workoutID: `workout_${Date.now()}`,
       templateID: template.templateID,
       createdAt: new Date().toISOString(),
-      exerciseList: exerciseList,  // Properly map to exerciseList
+      exerciseList: exerciseList,  // Correctly map to exerciseList
       previousWorkouts: previousWorkouts.map((workout) => ({
         ...workout,
         exerciseList: workout.exerciseList || [],
       })),
     };
+
+    console.log("New Workout Object:", newWorkout);
 
     dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: newWorkout });
   } catch (err) {
@@ -170,6 +172,7 @@ const startWorkout = async (template) => {
     dispatch({ type: 'SET_LOADING', payload: false });
   }
 };
+
 
 
   //Verify Start of Workout
