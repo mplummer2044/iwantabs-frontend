@@ -124,13 +124,39 @@ function App({ signOut, user }) {
         },
       });
   
-      // Properly structure the exercise list
+      console.log("Raw Template Data:", template);
+  
+      // Normalize sets to always be an array of set objects
+      const normalizeSets = (sets) => {
+        if (Array.isArray(sets)) {
+          return sets;  // Already an array, return as is
+        }
+  
+        if (typeof sets === 'number') {
+          console.log("Normalizing number of sets to array:", sets);
+          // Convert a number into an array of objects
+          return Array.from({ length: sets }, () => ({
+            values: { reps: null, weight: null, distance: null, time: null },
+            status: 'pending',
+          }));
+        }
+  
+        console.warn("Unexpected sets format, defaulting to empty array:", sets);
+        return [];
+      };
+  
+      // Normalize each exercise's sets during mapping
       const exerciseList = template.exercises.map((exercise) => {
+        // Fix the `sets` field by forcing it to be an array
+        const normalizedSets = normalizeSets(exercise.sets);
+        console.log(`Normalized sets for ${exercise.name}:`, normalizedSets);
         return {
           ...exercise,
-          sets: normalizeSets(exercise.sets)  // Apply normalization
+          sets: normalizedSets,
         };
       });
+  
+      console.log("Structured Exercise List after normalization:", exerciseList);
   
       const newWorkout = {
         userID: currentUser.username,
@@ -144,7 +170,7 @@ function App({ signOut, user }) {
         })),
       };
   
-      console.log("New Workout (Post Normalization):", newWorkout);
+      console.log("New Workout Object (Post Normalization):", newWorkout);
       dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: newWorkout });
     } catch (err) {
       console.error("Error starting workout:", err.message);
@@ -153,6 +179,7 @@ function App({ signOut, user }) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
+  
   
   
       // Normalize sets to always be an array of set objects
@@ -171,9 +198,7 @@ function App({ signOut, user }) {
         // Case 3: If sets is something else (like null or undefined), return an empty array
         console.warn("Unexpected sets format, defaulting to empty array:", sets);
         return [];
-      };
-  
-  
+      }; 
 
   //Verify Start of Workout
   useEffect(() => {
