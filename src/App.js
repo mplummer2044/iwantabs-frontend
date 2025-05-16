@@ -130,13 +130,12 @@ function App({ signOut, user }) {
   
       console.log("Raw Template Data:", template);
   
-      // Correctly map the sets field to an array of objects
+      // Normalize the sets field correctly
       const normalizeSets = (sets) => {
-        // If sets is already an array of objects, return it as-is
+        // If sets is already an array, ensure it contains objects
         if (Array.isArray(sets) && sets.every(item => typeof item === 'object')) {
           return sets;
         }
-      
         // If sets is a number, generate an array of set objects
         if (typeof sets === 'number') {
           return Array.from({ length: sets }, () => ({
@@ -144,31 +143,23 @@ function App({ signOut, user }) {
             status: 'pending',
           }));
         }
-      
-        // Log if the format is unexpected and return an empty array
+        // Handle unexpected formats
         console.warn("Unexpected sets format, returning empty array:", sets);
         return [];
       };
-      
-
-
   
-      // Map exercises and ensure sets are in the correct format
+      // Ensure that each exercise's sets field is an array
       const exerciseList = template.exercises.map((exercise) => {
         const normalizedSets = normalizeSets(exercise.sets);
-        console.log("Normalized sets for exercise:", exercise.name, normalizedSets);
+        console.log(`Normalized sets for ${exercise.name}:`, normalizedSets);
         return {
           ...exercise,
-          sets: normalizedSets,  // Properly normalized sets
+          sets: normalizedSets,
         };
       });
-      
-
-      console.log("Parsed Exercise List after normalization:", exerciseList);
-
-
   
-      console.log("Parsed Exercise List:", exerciseList);
+      // Log the fully structured exercise list for verification
+      console.log("Structured Exercise List after normalization:", exerciseList);
   
       const newWorkout = {
         userID: currentUser.username,
@@ -182,7 +173,7 @@ function App({ signOut, user }) {
         })),
       };
   
-      console.log("New Workout Object:", newWorkout);
+      console.log("New Workout Object (post-normalization):", newWorkout);
   
       dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: newWorkout });
     } catch (err) {
@@ -192,6 +183,7 @@ function App({ signOut, user }) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
+  
   
 
   //Verify Start of Workout

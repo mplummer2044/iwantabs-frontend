@@ -16,6 +16,7 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
   
   
   
+  
 
   const handleUpdate = (setIndex, field, value) => {
     dispatch({
