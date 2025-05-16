@@ -12,7 +12,8 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
         Invalid exercise data (sets: {JSON.stringify(exercise.sets)})
       </div>
     );
-  }  
+  }
+  
 
   const handleUpdate = (setIndex, field, value) => {
     dispatch({

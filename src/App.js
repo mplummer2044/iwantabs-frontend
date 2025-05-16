@@ -72,11 +72,7 @@ function App({ signOut, user }) {
       console.log("User data confirmed, now fetching workouts...");
       fetchWorkouts(currentUser.username);
     }
-  }, [currentUser]);  // Trigger when currentUser changes
-  
-
-
-
+  }, [currentUser]);  // Trigger when currentUser changes 
 
   // Fetch Workouts
   const fetchWorkouts = async () => {
@@ -128,45 +124,13 @@ function App({ signOut, user }) {
         },
       });
   
-      console.log("Raw Template Data:", template);
-  
-      // Properly normalize sets field to always be an array of set objects
-      const normalizeSets = (sets) => {
-        // If sets is already an array of objects, return it as-is
-        if (Array.isArray(sets)) {
-          return sets.every(set => typeof set === 'object') ? sets : [];
-        }
-      
-        // If sets is a number, generate an array of empty set objects
-        if (typeof sets === 'number') {
-          console.log("Normalizing number of sets to array:", sets);
-          return Array.from({ length: sets }, () => ({
-            values: { reps: null, weight: null, distance: null, time: null },
-            status: 'pending',
-          }));
-        }
-      
-        // Log unexpected formats and return an empty array
-        console.warn("Unexpected sets format, defaulting to empty array:", sets);
-        return [];
-      };
-      
-
-  
-      // Map exercises and ensure sets are in the correct format
+      // Properly structure the exercise list
       const exerciseList = template.exercises.map((exercise) => {
-        const normalizedSets = normalizeSets(exercise.sets);
-        console.log(`Normalized sets for ${exercise.name}:`, normalizedSets);
         return {
           ...exercise,
-          sets: normalizedSets,
+          sets: normalizeSets(exercise.sets)  // Apply normalization
         };
       });
-
-
-  
-      // Log the fully structured exercise list for verification
-      console.log("Structured Exercise List after normalization:", exerciseList);
   
       const newWorkout = {
         userID: currentUser.username,
@@ -180,16 +144,34 @@ function App({ signOut, user }) {
         })),
       };
   
-      console.log("New Workout Object (post-normalization):", newWorkout);
-  
+      console.log("New Workout (Post Normalization):", newWorkout);
       dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: newWorkout });
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', payload: err.message });
       console.error("Error starting workout:", err.message);
+      dispatch({ type: 'SET_ERROR', payload: err.message });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
+  
+  
+      // Normalize sets to always be an array of set objects
+      const normalizeSets = (sets) => {
+        // Case 1: If sets is already an array, return as-is
+        if (Array.isArray(sets)) return sets;
+
+        // Case 2: If sets is a number, convert it to an array of set objects
+        if (typeof sets === 'number') {
+          return Array.from({ length: sets }, () => ({
+            values: { reps: null, weight: null, distance: null, time: null },
+            status: 'pending',
+          }));
+        }
+
+        // Case 3: If sets is something else (like null or undefined), return an empty array
+        console.warn("Unexpected sets format, defaulting to empty array:", sets);
+        return [];
+      };
   
   
 
