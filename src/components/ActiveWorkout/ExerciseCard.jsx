@@ -4,6 +4,8 @@ import React from 'react';
 
 const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
   const { dispatch } = useWorkout();
+
+  // Safely access previous sets
   const previousSets = previousWorkouts?.[0]?.exerciseList
     ?.find(e => e.exerciseID === exercise.exerciseID)?.sets || [];
 
@@ -14,19 +16,20 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
         exerciseID: exercise.exerciseID,
         setIndex,
         field,
-        value
-      }
+        value,
+      },
     });
   };
 
   const renderPreviousStats = (set) => {
-    switch (set.values?.measurementType) {
+    if (!set?.values) return 'N/A';
+    switch (exercise.measurementType) {
       case 'weights':
-        return `${set.values.weight} × ${set.values.reps}`;
+        return `${set.values.weight || 'N/A'} × ${set.values.reps || 'N/A'}`;
       case 'timed':
-        return set.values.time;
+        return set.values.time || 'N/A';
       case 'cardio':
-        return `${set.values.distance} mi`;
+        return `${set.values.distance || 'N/A'} mi`;
       default:
         return 'N/A';
     }
@@ -53,15 +56,33 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
             
             <div className="current-set">
               <input
+                type="number"
                 value={set.values.weight || ''}
-                onChange={(e) => handleUpdate(setIndex, 'weight', e.target.value)}
+                onChange={(e) => handleUpdate(setIndex, 'weight', parseFloat(e.target.value) || '')}
                 placeholder="Weight"
               />
               <input
+                type="number"
                 value={set.values.reps || ''}
-                onChange={(e) => handleUpdate(setIndex, 'reps', e.target.value)}
+                onChange={(e) => handleUpdate(setIndex, 'reps', parseInt(e.target.value) || '')}
                 placeholder="Reps"
               />
+              {exercise.measurementType === 'timed' && (
+                <input
+                  type="text"
+                  value={set.values.time || ''}
+                  onChange={(e) => handleUpdate(setIndex, 'time', e.target.value)}
+                  placeholder="Time"
+                />
+              )}
+              {exercise.measurementType === 'cardio' && (
+                <input
+                  type="number"
+                  value={set.values.distance || ''}
+                  onChange={(e) => handleUpdate(setIndex, 'distance', parseFloat(e.target.value) || '')}
+                  placeholder="Distance"
+                />
+              )}
             </div>
           </div>
         ))}
@@ -69,14 +90,10 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
     </div>
   );
 }, 
-// Custom comparison function for memoization
-(prevProps, nextProps) => {
-  return (
-    prevProps.isActive === nextProps.isActive &&
-    prevProps.exercise.exerciseID === nextProps.exercise.exerciseID &&
-    JSON.stringify(prevProps.exercise.sets) === 
-      JSON.stringify(nextProps.exercise.sets)
-  );
-});
+(prevProps, nextProps) => (
+  prevProps.isActive === nextProps.isActive &&
+  prevProps.exercise.exerciseID === nextProps.exercise.exerciseID &&
+  JSON.stringify(prevProps.exercise.sets) === JSON.stringify(nextProps.exercise.sets)
+));
 
 export default ExerciseCard;
