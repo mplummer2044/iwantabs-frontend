@@ -132,26 +132,25 @@ function App({ signOut, user }) {
   
       // Properly normalize sets field to always be an array of set objects
       const normalizeSets = (sets) => {
+        // If sets is already an array of objects, return it as-is
         if (Array.isArray(sets)) {
-          // Return if already an array of objects
-          return sets.map((set) => (typeof set === 'object' ? set : {
-            values: { reps: null, weight: null, distance: null, time: null },
-            status: 'pending',
-          }));
+          return sets.every(set => typeof set === 'object') ? sets : [];
         }
-
-        // If sets is a number, create an array of set objects
+      
+        // If sets is a number, generate an array of empty set objects
         if (typeof sets === 'number') {
+          console.log("Normalizing number of sets to array:", sets);
           return Array.from({ length: sets }, () => ({
             values: { reps: null, weight: null, distance: null, time: null },
             status: 'pending',
           }));
         }
-
+      
         // Log unexpected formats and return an empty array
         console.warn("Unexpected sets format, defaulting to empty array:", sets);
         return [];
       };
+      
 
   
       // Map exercises and ensure sets are in the correct format
@@ -163,6 +162,7 @@ function App({ signOut, user }) {
           sets: normalizedSets,
         };
       });
+
 
   
       // Log the fully structured exercise list for verification
