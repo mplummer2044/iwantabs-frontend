@@ -133,13 +133,19 @@ function App({ signOut, user }) {
       // Normalize the exercise list to ensure it has the correct key
       let exerciseList = [];
       if (Array.isArray(template.exercises)) {
-        exerciseList = template.exercises.map((exercise) => ({
-          ...exercise,
-          sets: Array(exercise.sets || 1).fill().map(() => ({
-            values: { reps: null, weight: null, distance: null, time: null },
-            status: 'pending',
-          })),
-        }));
+        exerciseList = template.exercises.map((exercise) => {
+          // Check if the sets field is a number and convert it to an array of set objects
+          const setsArray = Array.isArray(exercise.sets)
+            ? exercise.sets
+            : Array.from({ length: exercise.sets || 1 }, () => ({
+                values: { reps: null, weight: null, distance: null, time: null },
+                status: 'pending',
+              }));
+          return {
+            ...exercise,
+            sets: setsArray,
+          };
+        });
       }
   
       if (!Array.isArray(exerciseList) || exerciseList.length === 0) {
@@ -153,7 +159,7 @@ function App({ signOut, user }) {
         workoutID: `workout_${Date.now()}`,
         templateID: template.templateID,
         createdAt: new Date().toISOString(),
-        exerciseList: exerciseList,  // Ensure correct key
+        exerciseList: exerciseList,
         previousWorkouts: previousWorkouts.map((workout) => ({
           ...workout,
           exerciseList: workout.exerciseList || [],
@@ -170,6 +176,7 @@ function App({ signOut, user }) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
+  
   
 
   //Verify Start of Workout
