@@ -7,8 +7,13 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
 
   if (!exercise || !Array.isArray(exercise.sets)) {
     console.warn("Invalid exercise data or sets is not an array:", exercise);
-    return <div className="exercise-card">Invalid exercise data</div>;
+    return (
+      <div className="exercise-card">
+        Invalid exercise data (sets: {JSON.stringify(exercise.sets)})
+      </div>
+    );
   }
+  
 
   const handleUpdate = (setIndex, field, value) => {
     dispatch({
