@@ -130,25 +130,31 @@ function App({ signOut, user }) {
   
       console.log("Raw Template Data:", template);
   
-      // Normalize the sets field correctly
+      // Properly normalize sets field to always be an array of set objects
       const normalizeSets = (sets) => {
-        // If sets is already an array, ensure it contains objects
-        if (Array.isArray(sets) && sets.every(item => typeof item === 'object')) {
-          return sets;
+        if (Array.isArray(sets)) {
+          // Return if already an array of objects
+          return sets.map((set) => (typeof set === 'object' ? set : {
+            values: { reps: null, weight: null, distance: null, time: null },
+            status: 'pending',
+          }));
         }
-        // If sets is a number, generate an array of set objects
+
+        // If sets is a number, create an array of set objects
         if (typeof sets === 'number') {
           return Array.from({ length: sets }, () => ({
             values: { reps: null, weight: null, distance: null, time: null },
             status: 'pending',
           }));
         }
-        // Handle unexpected formats
-        console.warn("Unexpected sets format, returning empty array:", sets);
+
+        // Log unexpected formats and return an empty array
+        console.warn("Unexpected sets format, defaulting to empty array:", sets);
         return [];
       };
+
   
-      // Ensure that each exercise's sets field is an array
+      // Map exercises and ensure sets are in the correct format
       const exerciseList = template.exercises.map((exercise) => {
         const normalizedSets = normalizeSets(exercise.sets);
         console.log(`Normalized sets for ${exercise.name}:`, normalizedSets);
@@ -157,6 +163,7 @@ function App({ signOut, user }) {
           sets: normalizedSets,
         };
       });
+
   
       // Log the fully structured exercise list for verification
       console.log("Structured Exercise List after normalization:", exerciseList);
