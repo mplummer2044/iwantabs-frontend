@@ -131,32 +131,38 @@ function App({ signOut, user }) {
       console.log("Raw Template Data:", template);
   
       // Correctly map the sets field to an array of objects
-      const normalizeSets = (setsCount) => {
-        // If setsCount is a number, generate an array of set objects
-        if (typeof setsCount === 'number') {
-          return Array.from({ length: setsCount }, () => ({
+      const normalizeSets = (sets) => {
+        // If sets is already an array of objects, return it as-is
+        if (Array.isArray(sets) && sets.every(item => typeof item === 'object')) {
+          return sets;
+        }
+      
+        // If sets is a number, generate an array of set objects
+        if (typeof sets === 'number') {
+          return Array.from({ length: sets }, () => ({
             values: { reps: null, weight: null, distance: null, time: null },
             status: 'pending',
           }));
         }
-
-        // If setsCount is already an array, return as-is (for safety)
-        if (Array.isArray(setsCount)) {
-          return setsCount;
-        }
-
+      
         // Log if the format is unexpected and return an empty array
-        console.warn("Unexpected sets format:", setsCount);
+        console.warn("Unexpected sets format, returning empty array:", sets);
         return [];
       };
+      
 
 
   
       // Map exercises and ensure sets are in the correct format
-      const exerciseList = template.exercises.map((exercise) => ({
-        ...exercise,
-        sets: normalizeSets(exercise.sets),  // Correctly handle the sets field
-      }));
+      const exerciseList = template.exercises.map((exercise) => {
+        const normalizedSets = normalizeSets(exercise.sets);
+        console.log("Normalized sets for exercise:", exercise.name, normalizedSets);
+        return {
+          ...exercise,
+          sets: normalizedSets,  // Properly normalized sets
+        };
+      });
+      
 
       console.log("Parsed Exercise List after normalization:", exerciseList);
 
