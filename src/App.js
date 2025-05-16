@@ -132,16 +132,7 @@ function App({ signOut, user }) {
   
       // Correctly map the sets field to an array of objects
       const normalizeSets = (setsCount) => {
-        // If sets is already an array, just return it
-        if (Array.isArray(setsCount)) {
-          return setsCount.map((set) => ({
-            values: { reps: null, weight: null, distance: null, time: null },
-            status: 'pending',
-            ...set,
-          }));
-        }
-
-        // If setsCount is a number, generate an array with that many set objects
+        // If setsCount is a number, generate an array of set objects
         if (typeof setsCount === 'number') {
           return Array.from({ length: setsCount }, () => ({
             values: { reps: null, weight: null, distance: null, time: null },
@@ -149,10 +140,16 @@ function App({ signOut, user }) {
           }));
         }
 
-        // Fallback if setsCount is neither an array nor a number
+        // If setsCount is already an array, return as-is (for safety)
+        if (Array.isArray(setsCount)) {
+          return setsCount;
+        }
+
+        // Log if the format is unexpected and return an empty array
         console.warn("Unexpected sets format:", setsCount);
         return [];
       };
+
 
   
       // Map exercises and ensure sets are in the correct format
@@ -160,6 +157,9 @@ function App({ signOut, user }) {
         ...exercise,
         sets: normalizeSets(exercise.sets),  // Correctly handle the sets field
       }));
+
+      console.log("Parsed Exercise List after normalization:", exerciseList);
+
 
   
       console.log("Parsed Exercise List:", exerciseList);

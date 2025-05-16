@@ -6,13 +6,14 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
   const { dispatch } = useWorkout();
 
   if (!exercise || !Array.isArray(exercise.sets)) {
-    console.warn("Invalid exercise data or sets is not an array:", exercise);
+    console.warn("Invalid exercise data or sets is not an array:", JSON.stringify(exercise, null, 2));
     return (
       <div className="exercise-card">
         Invalid exercise data (sets: {JSON.stringify(exercise.sets)})
       </div>
     );
   }
+  
   
 
   const handleUpdate = (setIndex, field, value) => {
