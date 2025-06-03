@@ -235,7 +235,6 @@ return (
     {renderView()}
     <footer>
       <button onClick={() => setView('active')}>Active Workout</button>
-      <button onClick={() => onStartWorkout(template)}>Start Workout</button>
       <button onClick={() => setView('builder')}>Build Workout</button>
       <button onClick={() => setView('history')}>History</button>
     </footer>

@@ -7,13 +7,10 @@ import SwipeContainer from './SwipeContainer';
 import PositionIndicators from './PositionIndicators';
 import ErrorBoundary from '../common/ErrorBoundary';
 
-const ActiveWorkout = () => {
+const ActiveWorkout = ({ onStartWorkout }) => {
   const { state, dispatch } = useWorkout();
   const { loading, error, activeWorkout, currentExerciseIndex, workoutTemplates } = state;
 
-  const startWorkout = (template) => {
-    dispatch({ type: 'SET_ACTIVE_WORKOUT', payload: template });
-  };
 
   useEffect(() => {
     console.log("Workout Templates in ActiveWorkout (from state):", workoutTemplates);
@@ -44,9 +41,10 @@ const ActiveWorkout = () => {
             <WorkoutTemplateCard
               key={template.templateID}
               template={template}
-              onStart={() => startWorkout(template)}
+              onStart={() => onStartWorkout(template)}
             />
           ))}
+
         </div>
       )}
   
