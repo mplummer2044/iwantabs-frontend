@@ -39,13 +39,13 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
                 <input
                     type="number"
                     placeholder="Weight"
-                    value={set.values?.weight || ''}
+                    value={set.values?.weight !== undefined && set.values?.weight !== null ? set.values.weight : ''}
                     onChange={(e) => handleUpdate(index, 'weight', parseFloat(e.target.value) || '')}
                 />
                 <input
                     type="number"
                     placeholder="Reps"
-                    value={set.values?.reps || ''}
+                    value={set.values?.reps !== undefined && set.values?.reps !== null ? set.values.reps : ''}
                     onChange={(e) => handleUpdate(index, 'reps', parseInt(e.target.value) || '')}
                 />
                 </>
@@ -55,7 +55,7 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
                 <input
                 type="number"
                 placeholder="Reps"
-                value={set.values?.reps || ''}
+                value={set.values?.reps !== undefined && set.values?.reps !== null ? set.values.reps : ''}
                 onChange={(e) => handleUpdate(index, 'reps', parseInt(e.target.value) || '')}
                 />
             )}
@@ -64,7 +64,7 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
                 <input
                 type="text"
                 placeholder="Time"
-                value={set.values?.time || ''}
+                value={set.values?.time !== undefined && set.values?.time !== null ? set.values.time : ''}
                 onChange={(e) => handleUpdate(index, 'time', e.target.value)}
                 />
             )}
@@ -73,7 +73,7 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
                 <input
                 type="number"
                 placeholder="Distance"
-                value={set.values?.distance || ''}
+                value={set.values?.distance !== undefined && set.values?.distance !== null ? set.values.distance : ''}
                 onChange={(e) => handleUpdate(index, 'distance', parseFloat(e.target.value) || '')}
                 />
             )}
