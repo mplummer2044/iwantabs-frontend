@@ -33,36 +33,52 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
       <p>Type: {exercise.measurementType}</p>
       <div className="sets-container">
         {exercise.sets.map((set, index) => (
-          <div key={index} className="set-row">
-            <input
-              type="number"
-              placeholder="Weight"
-              value={set.values?.weight || ''}
-              onChange={(e) => handleUpdate(index, 'weight', parseFloat(e.target.value) || '')}
-            />
-            <input
-              type="number"
-              placeholder="Reps"
-              value={set.values?.reps || ''}
-              onChange={(e) => handleUpdate(index, 'reps', parseInt(e.target.value) || '')}
-            />
+            <div className="set-row">
+            {exercise.measurementType === 'weights' && (
+                <>
+                <input
+                    type="number"
+                    placeholder="Weight"
+                    value={set.values?.weight || ''}
+                    onChange={(e) => handleUpdate(index, 'weight', parseFloat(e.target.value) || '')}
+                />
+                <input
+                    type="number"
+                    placeholder="Reps"
+                    value={set.values?.reps || ''}
+                    onChange={(e) => handleUpdate(index, 'reps', parseInt(e.target.value) || '')}
+                />
+                </>
+            )}
+
+            {exercise.measurementType === 'bodyweight' && (
+                <input
+                type="number"
+                placeholder="Reps"
+                value={set.values?.reps || ''}
+                onChange={(e) => handleUpdate(index, 'reps', parseInt(e.target.value) || '')}
+                />
+            )}
+
             {exercise.measurementType === 'timed' && (
-              <input
+                <input
                 type="text"
                 placeholder="Time"
                 value={set.values?.time || ''}
                 onChange={(e) => handleUpdate(index, 'time', e.target.value)}
-              />
+                />
             )}
+
             {exercise.measurementType === 'cardio' && (
-              <input
+                <input
                 type="number"
                 placeholder="Distance"
                 value={set.values?.distance || ''}
                 onChange={(e) => handleUpdate(index, 'distance', parseFloat(e.target.value) || '')}
-              />
+                />
             )}
-          </div>
+            </div>
+
         ))}
       </div>
     </div>
