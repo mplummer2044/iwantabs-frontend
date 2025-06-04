@@ -16,6 +16,7 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
   
 
   const handleUpdate = (setIndex, field, value) => {
+    console.log('Updating:', { setIndex, field, value });
     dispatch({
       type: 'UPDATE_SET',
       payload: {
@@ -26,6 +27,7 @@ const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
       },
     });
   };
+  
 
   return (
     <div className={`exercise-card ${isActive ? 'active' : ''}`}>
