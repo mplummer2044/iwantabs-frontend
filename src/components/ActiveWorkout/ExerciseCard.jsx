@@ -1,9 +1,6 @@
-import React, { useContext } from 'react';
-import { WorkoutContext } from '../common/WorkoutContext';
+import React from 'react';
 
 const ExerciseCard = ({ exercise, index, onUpdateSetValue }) => {
-  const { state } = useContext(WorkoutContext);
-
   const handleChange = (setIndex, field, value) => {
     onUpdateSetValue(index, setIndex, field, value);
   };
