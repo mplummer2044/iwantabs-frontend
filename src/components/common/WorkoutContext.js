@@ -49,6 +49,20 @@ const reducer = (state, action) => {
         workoutTemplates: action.payload.templates,
         workoutHistory: action.payload.history,
     }; 
+    case 'UPDATE_EXERCISE_SET_VALUE':
+        const updatedWorkout = { ...state.activeWorkout };
+        const { exerciseIndex, setIndex, field, value } = action.payload;
+
+        if (
+            updatedWorkout.exerciseList?.[exerciseIndex]?.sets?.[setIndex]?.values
+        ) {
+            updatedWorkout.exerciseList[exerciseIndex].sets[setIndex].values[field] = value;
+        }
+
+        return {
+            ...state,
+            activeWorkout: updatedWorkout,
+        };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'SET_ACTIVE_WORKOUT': {

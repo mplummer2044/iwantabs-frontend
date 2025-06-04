@@ -9,6 +9,12 @@ import ErrorBoundary from '../common/ErrorBoundary';
 
 const ActiveWorkout = ({ onStartWorkout }) => {
   const { state, dispatch } = useWorkout();
+  const handleSetValueChange = (exerciseIndex, setIndex, field, value) => {
+    dispatch({
+      type: 'UPDATE_EXERCISE_SET_VALUE',
+      payload: { exerciseIndex, setIndex, field, value },
+    });
+  };
   const { loading, error, activeWorkout, currentExerciseIndex, workoutTemplates } = state;
 
 
@@ -53,10 +59,12 @@ const ActiveWorkout = ({ onStartWorkout }) => {
         {activeWorkout.exerciseList.map((exercise, index) => (
           <ErrorBoundary key={exercise.exerciseID}>
             <ExerciseCard
+              key={exercise.exerciseID}
               exercise={exercise}
-              isActive={index === currentExerciseIndex}
-              previousWorkouts={activeWorkout.previousWorkouts || []}
+              index={index}
+              onUpdateSetValue={handleSetValueChange}
             />
+
           </ErrorBoundary>
         ))}
       </SwipeContainer>

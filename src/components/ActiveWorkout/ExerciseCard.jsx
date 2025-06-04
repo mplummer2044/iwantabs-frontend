@@ -1,90 +1,65 @@
-// src/components/ActiveWorkout/ExerciseCard.jsx
-import { useWorkout } from '../common/WorkoutContext';
-import React from 'react';
+import React, { useContext } from 'react';
+import { WorkoutContext } from '../common/WorkoutContext';
 
-const ExerciseCard = React.memo(({ exercise, previousWorkouts, isActive }) => {
-  const { dispatch } = useWorkout();
+const ExerciseCard = ({ exercise, index, onUpdateSetValue }) => {
+  const { state } = useContext(WorkoutContext);
 
-  if (!exercise || !Array.isArray(exercise.sets)) {
-    console.warn("Invalid exercise data or sets is not an array:", JSON.stringify(exercise, null, 2));
-    return (
-      <div className="exercise-card">
-        Invalid exercise data (sets: {JSON.stringify(exercise.sets)})
-      </div>
-    );
-  }  
-  
-
-  const handleUpdate = (setIndex, field, value) => {
-    console.log('Updating:', { setIndex, field, value });
-    dispatch({
-      type: 'UPDATE_SET',
-      payload: {
-        exerciseID: exercise.exerciseID,
-        setIndex,
-        field,
-        value,
-      },
-    });
+  const handleChange = (setIndex, field, value) => {
+    onUpdateSetValue(index, setIndex, field, value);
   };
-  
 
   return (
-    <div className={`exercise-card ${isActive ? 'active' : ''}`}>
-      <h3>{exercise.name}</h3>
-      <p>Type: {exercise.measurementType}</p>
-      <div className="sets-container">
-        {exercise.sets.map((set, index) => (
-            <div className="set-row">
-            {exercise.measurementType === 'weights' && (
-                <>
-                <input
-                    type="number"
-                    placeholder="Weight"
-                    value={set.values?.weight !== undefined && set.values?.weight !== null ? set.values.weight : ''}
-                    onChange={(e) => handleUpdate(index, 'weight', parseFloat(e.target.value) || '')}
-                />
-                <input
-                    type="number"
-                    placeholder="Reps"
-                    value={set.values?.reps !== undefined && set.values?.reps !== null ? set.values.reps : ''}
-                    onChange={(e) => handleUpdate(index, 'reps', parseInt(e.target.value) || '')}
-                />
-                </>
-            )}
-
-            {exercise.measurementType === 'bodyweight' && (
-                <input
+    <div className="exercise-card">
+      <h2>{exercise.name}</h2>
+      {exercise.sets.map((set, setIndex) => (
+        <div key={setIndex} className="set-row">
+          {exercise.measurementType === 'weights' && (
+            <>
+              <input
+                type="number"
+                placeholder="Weight"
+                value={set.values?.weight || ''}
+                onChange={(e) => handleChange(setIndex, 'weight', e.target.value)}
+              />
+              <input
                 type="number"
                 placeholder="Reps"
-                value={set.values?.reps !== undefined && set.values?.reps !== null ? set.values.reps : ''}
-                onChange={(e) => handleUpdate(index, 'reps', parseInt(e.target.value) || '')}
-                />
-            )}
+                value={set.values?.reps || ''}
+                onChange={(e) => handleChange(setIndex, 'reps', e.target.value)}
+              />
+            </>
+          )}
 
-            {exercise.measurementType === 'timed' && (
-                <input
-                type="text"
-                placeholder="Time"
-                value={set.values?.time !== undefined && set.values?.time !== null ? set.values.time : ''}
-                onChange={(e) => handleUpdate(index, 'time', e.target.value)}
-                />
-            )}
+          {exercise.measurementType === 'bodyweight' && (
+            <input
+              type="number"
+              placeholder="Reps"
+              value={set.values?.reps || ''}
+              onChange={(e) => handleChange(setIndex, 'reps', e.target.value)}
+            />
+          )}
 
-            {exercise.measurementType === 'cardio' && (
-                <input
-                type="number"
-                placeholder="Distance"
-                value={set.values?.distance !== undefined && set.values?.distance !== null ? set.values.distance : ''}
-                onChange={(e) => handleUpdate(index, 'distance', parseFloat(e.target.value) || '')}
-                />
-            )}
-            </div>
+          {exercise.measurementType === 'timed' && (
+            <input
+              type="text"
+              placeholder="Time"
+              value={set.values?.time || ''}
+              onChange={(e) => handleChange(setIndex, 'time', e.target.value)}
+            />
+          )}
 
-        ))}
-      </div>
+          {exercise.measurementType === 'cardio' && (
+            <input
+              type="number"
+              placeholder="Distance"
+              value={set.values?.distance || ''}
+              onChange={(e) => handleChange(setIndex, 'distance', e.target.value)}
+            />
+          )}
+        </div>
+      ))}
     </div>
   );
-});
+};
 
 export default ExerciseCard;
