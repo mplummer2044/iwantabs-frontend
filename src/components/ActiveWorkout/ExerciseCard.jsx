@@ -12,6 +12,12 @@ const ExerciseCard = ({ exercise, index, onUpdateSetValue }) => {
         <div key={setIndex} className="set-row">
           {exercise.measurementType === 'weights' && (
             <>
+            <span
+            className={`status-indicator ${set.status}`}
+            onClick={() => onToggleStatus(index, setIndex)}
+            title={`Mark set as ${set.status}`}
+            />
+
               <input
                 type="number"
                 placeholder="Weight"

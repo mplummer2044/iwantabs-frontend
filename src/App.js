@@ -38,7 +38,10 @@ function App({ signOut, user }) {
       case 'history':
         return <WorkoutHistory />;
       default:
-        return <ActiveWorkout onStartWorkout={startWorkout} />;     
+        return <ActiveWorkout
+        onStartWorkout={startWorkout}
+        onFinishWorkout={() => setView('history')}
+      />;     
     }
   };
 

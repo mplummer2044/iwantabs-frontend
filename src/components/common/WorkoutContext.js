@@ -90,6 +90,17 @@ const reducer = (state, action) => {
         activeWorkout: null,
         currentExerciseIndex: 0 
       };
+    case 'UPDATE_EXERCISE_SET_STATUS': {
+    const { exerciseIndex, setIndex, status } = action.payload;
+    const updatedWorkout = { ...state.activeWorkout };
+
+    if (updatedWorkout.exerciseList?.[exerciseIndex]?.sets?.[setIndex]) {
+        updatedWorkout.exerciseList[exerciseIndex].sets[setIndex].status = status;
+    }
+
+    return { ...state, activeWorkout: updatedWorkout };
+    }
+
     case 'UPDATE_SET': {
     const { exerciseID, setIndex, field, value } = action.payload;
     return {

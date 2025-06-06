@@ -7,6 +7,7 @@ import SwipeContainer from './SwipeContainer';
 import PositionIndicators from './PositionIndicators';
 import ErrorBoundary from '../common/ErrorBoundary';
 
+
 const ActiveWorkout = ({ onStartWorkout }) => {
   const { state, dispatch } = useWorkout();
   const handleSetValueChange = (exerciseIndex, setIndex, field, value) => {
@@ -15,7 +16,55 @@ const ActiveWorkout = ({ onStartWorkout }) => {
       payload: { exerciseIndex, setIndex, field, value },
     });
   };
+  const handleFinishWorkout = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+  
+    try {
+      const { tokens } = await fetchAuthSession();
+      const idToken = tokens.idToken.toString();
+  
+      const finishedWorkout = {
+        ...state.activeWorkout,
+        finishedAt: new Date().toISOString()
+      };
+  
+      await axios.post(`${API_BASE}/workouts`, finishedWorkout, {
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+  
+      const newHistory = [finishedWorkout, ...state.workoutHistory];
+  
+      dispatch({
+        type: 'LOAD_TEMPLATES',
+        payload: {
+          templates: state.workoutTemplates,
+          history: newHistory
+        }
+      });
+  
+      dispatch({ type: 'CLEAR_ACTIVE' });
+      props.onFinishWorkout(); // Switch view to summary
+    } catch (err) {
+      console.error("Failed to finish workout:", err);
+      dispatch({ type: 'SET_ERROR', payload: err.message });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+  
   const { loading, error, activeWorkout, currentExerciseIndex, workoutTemplates } = state;
+
+  const handleToggleStatus = (exerciseIndex, setIndex) => {
+    const statusOrder = ['pending', 'good', 'medium', 'bad'];
+    const currentStatus = state.activeWorkout.exerciseList[exerciseIndex].sets[setIndex].status;
+    const nextStatus = statusOrder[(statusOrder.indexOf(currentStatus) + 1) % statusOrder.length];
+  
+    dispatch({
+      type: 'UPDATE_EXERCISE_SET_STATUS',
+      payload: { exerciseIndex, setIndex, status: nextStatus }
+    });
+  };
+  
 
 
   useEffect(() => {
@@ -63,6 +112,7 @@ const ActiveWorkout = ({ onStartWorkout }) => {
               exercise={exercise}
               index={index}
               onUpdateSetValue={handleSetValueChange}
+              onToggleStatus={handleToggleStatus}
             />
 
           </ErrorBoundary>
@@ -72,7 +122,11 @@ const ActiveWorkout = ({ onStartWorkout }) => {
       <div>No exercises available in this workout.</div>
     )}
 
-      <button className="save-button">Finish Workout</button>
+      {activeWorkout && (
+        <button className="save-button" onClick={handleFinishWorkout}>
+          Finish Workout
+        </button>
+      )}
     </div>
   );
 };
