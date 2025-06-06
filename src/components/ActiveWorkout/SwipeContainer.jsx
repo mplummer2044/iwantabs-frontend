@@ -5,7 +5,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 // (Import other Swiper CSS if needed, e.g., navigation or scrollbar, but not required here)
 
-import { useWorkout } from '/Users/Labeaux/iwantabs-frontend/src/components/common/WorkoutContext.js';
+import { useWorkout } from '../common/WorkoutContext';
 
 const SwipeContainer = ({ children, currentIndex }) => {
   const { dispatch } = useWorkout();
