@@ -426,3 +426,14 @@ footer button {
 .template-card button:hover {
   background: #45a049;
 }
+
+.swiper-pagination-bullets {
+  bottom: 10px; /* adjust vertical position */
+}
+.swiper-pagination-bullet {
+  background: #ccc;
+}
+.swiper-pagination-bullet-active {
+  background: #333;
+}
+
