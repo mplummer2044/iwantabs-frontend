@@ -6,6 +6,10 @@ import WorkoutTemplateCard from './WorkoutTemplateCard';
 import SwipeContainer from './SwipeContainer';
 import PositionIndicators from './PositionIndicators';
 import ErrorBoundary from '../common/ErrorBoundary';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 
 
 const ActiveWorkout = ({ onStartWorkout }) => {
