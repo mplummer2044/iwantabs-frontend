@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ExerciseCard = ({ exercise, index, onUpdateSetValue }) => {
+const ExerciseCard = ({ exercise, index, onUpdateSetValue, onToggleStatus }) => {
   const handleChange = (setIndex, field, value) => {
     onUpdateSetValue(index, setIndex, field, value);
   };

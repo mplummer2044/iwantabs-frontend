@@ -9,6 +9,9 @@ import ErrorBoundary from '../common/ErrorBoundary';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import awsConfig from '../../aws-exports';
+
+const API_BASE = awsConfig.API.endpoints[0].endpoint;
 
 
 
