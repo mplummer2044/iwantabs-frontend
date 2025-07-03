@@ -1,32 +1,17 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { WorkoutProvider } from './components/common/WorkoutContext';
-import './index.css';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { Amplify } from 'aws-amplify';
-import awsConfig from './aws-exports';
-import { withAuthenticator } from '@aws-amplify/ui-react';
-import '@aws-amplify/ui-react/styles.css';
+import { WorkoutProvider } from './components/common/WorkoutContext';
 
-// Configure Amplify with your settings
-Amplify.configure(awsConfig);
-
-// Wrap your App component with authentication
-const AppWithAuth = withAuthenticator(App, {
-  signUpAttributes: ['email'], // Fields for signup
-  loginMechanisms: ['email']   // Login with email
-});
-
-// Create root and render the authenticated app
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const container = document.getElementById('root');
+const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <WorkoutProvider>
-      <AppWithAuth />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </WorkoutProvider>
   </React.StrictMode>
 );
-
-// Performance monitoring (optional)
-reportWebVitals();
