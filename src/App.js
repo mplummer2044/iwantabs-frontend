@@ -5,7 +5,7 @@ import { useWorkout } from './components/common/WorkoutContext';
 import ActiveWorkout from './components/ActiveWorkout';
 import WorkoutBuilder from './components/WorkoutBuilder';
 import WorkoutHistory from './components/WorkoutHistory';
-import '@aws-amplify/ui-react/styles.css';
+import '@aws-amplify/ui-react/styles.css';   // Import Amplify UI styles for the authenticator
 import './App.css';
 
 function App({ signOut, user }) {
@@ -45,4 +45,5 @@ function App({ signOut, user }) {
   );
 }
 
+// Wrap the App component with Amplify's withAuthenticator HOC to enable the login UI
 export default withAuthenticator(App);

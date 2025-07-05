@@ -7,8 +7,7 @@ import App from './App';
 import { WorkoutProvider } from './components/common/WorkoutContext';
 
 // Configure Amplify with AWS Cognito/API settings
-Amplify.configure(awsConfig);
-
+Amplify.configure(awsConfig);  // Initialize Amplify with your AWS config
 
 const container = document.getElementById('root');
 const root = createRoot(container);
