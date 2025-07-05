@@ -1,5 +1,22 @@
-// src/aws-exports.js
 const awsConfig = {
+    Auth: {
+      // Region where your Cognito User Pool lives
+      region: 'us-east-1',
+      // Your User Pool ID
+      userPoolId: 'us-east-1_lcZMlbm3c',
+      // Your User Pool App Client ID
+      userPoolWebClientId: '5p646eiimag416fhhai5bhgrf6',
+      // Optional: require signin for every API call
+      mandatorySignIn: false,
+      // If you later add Hosted UI / OAuth, you can enable:
+      // oauth: {
+      //   domain: 'your-domain.auth.us-east-1.amazoncognito.com',
+      //   scope: ['openid','email','profile'],
+      //   redirectSignIn: 'https://main.d1atihsq0v31p5.amplifyapp.com/',
+      //   redirectSignOut: 'https://main.d1atihsq0v31p5.amplifyapp.com/',
+      //   responseType: 'code'
+      // },
+    },
     API: {
       endpoints: [
         {
@@ -8,19 +25,5 @@ const awsConfig = {
           region: "us-east-1"
         }
       ]
-    },
-    Auth: {
-      Cognito: {
-        region: 'us-east-1',
-        userPoolId: 'us-east-1_lcZMlbm3c',
-        userPoolWebClientId: '5p646eiimag416fhhai5bhgrf6',
-        loginWith: {
-          oauth: {
-            redirectSignIn: ['https://main.d1atihsq0v31p5.amplifyapp.com'],
-            redirectSignOut: ['https://main.d1atihsq0v31p5.amplifyapp.com'],
-            responseType: 'code'
-          }
-        }
-      }
     }
   };
