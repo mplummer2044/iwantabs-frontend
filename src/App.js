@@ -5,7 +5,6 @@ import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 
-// Import the new components
 import Header from './components/Header';
 import WorkoutTemplateCreator from './components/WorkoutTemplateCreator';
 import WorkoutTemplatesList from './components/WorkoutTemplatesList';
@@ -40,13 +39,13 @@ function App({ signOut, user }) {
         fetchWorkouts();
       } catch (err) {
         console.log("User not signed in or session fetch failed", err);
-        // If not signed in, you might redirect to login here (Amplify handles via withAuthenticator)
+        // If not signed in, Amplify will handle via withAuthenticator
       }
     };
     loadUserAndData();
   }, []);
 
-  // If currentUser changes (e.g., on login), load workouts (redundant with above, but keeps data fresh)
+  // If currentUser changes (e.g., on login), load workouts (redundant with above to keep data fresh)
   useEffect(() => {
     if (currentUser?.username) {
       fetchWorkouts();
@@ -102,6 +101,28 @@ function App({ signOut, user }) {
     }
   };
 
+  // API call: **delete** a workout template (Manage mode)
+  // NEW: Delete a template by ID with confirmation modal in UI
+  const deleteWorkoutTemplate = async (template) => {
+    try {
+      const { tokens } = await fetchAuthSession();
+      // The DeleteWorkoutPy Lambda expects userID and workoutID in the request body.
+      // We'll use template.templateID as the workoutID key for deletion.
+      await axios.delete(`${API_BASE}/templates`, {
+        headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` },
+        data: {
+          userID: currentUser.username,
+          workoutID: template.templateID    // using templateID as the key to delete
+        }
+      });
+      // Remove the deleted template from state
+      setWorkoutTemplates(prev => prev.filter(t => t.templateID !== template.templateID));
+    } catch (err) {
+      console.error("Deletion failed:", err.response?.data || err.message);
+      throw err;
+    }
+  };
+
   // Start a workout session from a chosen template
   const startWorkout = async (template) => {
     try {
@@ -122,19 +143,18 @@ function App({ signOut, user }) {
         createdAt: new Date().toISOString(),
         exerciseList: template.exercises.map(exercise => ({
           ...exercise,
-          // Ensure exerciseID is carried over
           exerciseID: exercise.exerciseID,
-          // Create an array of sets for this exercise, each with default values and pending status
+          // Create an array of sets for this exercise (default pending status)
           sets: Array(exercise.sets || 1).fill().map(() => ({
             values: { reps: null, weight: null, distance: null, time: null },
             status: 'pending'
           })),
-          // Gather previous stats (all sets from previous workouts of this exercise, for potential future use)
+          // Gather sets from previous workouts of this exercise (for potential future use)
           previousStats: previousWorkouts.flatMap(w =>
             w.exerciseList?.find(e => e.exerciseID === exercise.exerciseID)?.sets || []
           )
         })),
-        // Store previous workouts data for reference (especially the most recent one for display)
+        // Store previous workouts data for reference
         previousWorkouts: previousWorkouts.map(w => ({
           ...w,
           exerciseList: w.exerciseList || w.exercises || []
@@ -219,8 +239,12 @@ function App({ signOut, user }) {
       {/* Past workout history list */}
       <WorkoutHistory history={workoutHistory} templates={workoutTemplates} />
 
-      {/* List of workout templates */}
-      <WorkoutTemplatesList templates={workoutTemplates} onStartWorkout={startWorkout} />
+      {/* List of workout templates (with Manage/Delete functionality) */}
+      <WorkoutTemplatesList 
+        templates={workoutTemplates} 
+        onStartWorkout={startWorkout}
+        onDeleteTemplate={deleteWorkoutTemplate}   
+      />
     </div>
   );
 }

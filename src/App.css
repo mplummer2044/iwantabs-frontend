@@ -300,3 +300,58 @@ input {
     display: none;
   }
 }
+
+/* Make delete buttons distinct (red) */
+.delete-btn {
+  background-color: #d9534f;  /* Bootstrap red shade */
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  margin-left: 5px;
+  cursor: pointer;
+}
+.delete-btn:hover {
+  background-color: #c9302c;
+}
+
+/* Header section for templates list with Manage button */
+.templates-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.templates-header h2 {
+  margin: 0;
+}
+
+/* Modal overlay covering the whole screen */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;  /* ensure modal is on top */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal content box */
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  max-width: 400px;
+  width: 90%;
+}
+
+/* Modal buttons layout */
+.modal-buttons {
+  margin-top: 15px;
+  text-align: right;
+}
+.modal-buttons button {
+  margin-left: 10px;
+}
