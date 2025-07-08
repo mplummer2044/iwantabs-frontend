@@ -58,7 +58,7 @@ function App({ signOut, user }) {
     setLoading(true);
     try {
       const { tokens } = await fetchAuthSession();
-      const res = await axios.get(`${API_BASE}`, {
+      const res = await axios.get(`${API_BASE}/templates`, {
         headers: {
           Authorization: tokens?.idToken?.toString()
         }
@@ -89,7 +89,7 @@ function App({ signOut, user }) {
         })),
         userID: currentUser.username
       };
-      const response = await axios.post(`${API_BASE}`, templateWithIDs, {
+      const response = await axios.post(`${API_BASE}/templates`, templateWithIDs, {
         headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` }
       });
       // Update state with the new template
