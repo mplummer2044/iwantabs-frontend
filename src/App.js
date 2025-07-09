@@ -108,7 +108,7 @@ function App({ signOut, user }) {
       const { tokens } = await fetchAuthSession();
       // The DeleteWorkoutPy Lambda expects userID and workoutID in the request body.
       // We'll use template.templateID as the workoutID key for deletion.
-      await axios.delete(`${API_BASE}`, {
+      await axios.delete(`${API_BASE}/templates`, {
         headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` },
         data: {
           userID: currentUser.username,
