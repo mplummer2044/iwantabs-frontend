@@ -111,8 +111,7 @@ function App({ signOut, user }) {
       await axios.delete(`${API_BASE}/templates`, {
         headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` },
         data: {
-          userID: currentUser.username,
-          workoutID: template.templateID    // using templateID as the key to delete
+          body: JSON.stringify({ userID, templateID })
         }
       });
       // Remove the deleted template from state
