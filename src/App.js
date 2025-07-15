@@ -106,15 +106,14 @@ function App({ signOut, user }) {
   const deleteWorkoutTemplate = async (template) => {
     try {
       const { tokens } = await fetchAuthSession();
-      // The DeleteWorkoutPy Lambda expects userID and workoutID in the request body.
-      // We'll use template.templateID as the workoutID key for deletion.
       await axios.delete(`${API_BASE}/templates`, {
-        headers: { Authorization: `Bearer ${tokens?.idToken?.toString()}` },
+        headers: { Authorization: `Bearer ${tokens.idToken.toString()}` },
         data: {
-          body: JSON.stringify({ userID, templateID })
+          userID: currentUser.username,       // Use the logged-in user's ID
+          templateID: template.templateID     // Use the template's unique ID
         }
       });
-      // Remove the deleted template from state
+      // Update state to remove the deleted template from the list
       setWorkoutTemplates(prev => prev.filter(t => t.templateID !== template.templateID));
     } catch (err) {
       console.error("Deletion failed:", err.response?.data || err.message);
