@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
 
 function WorkoutTemplatesList({ templates, onStartWorkout, onDeleteTemplate }) {
-  // NEW state: manage mode toggle & delete confirmation
   const [manageMode, setManageMode] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState(null);
   const [confirmName, setConfirmName] = useState("");
 
-  // Handle clicking the "Delete" button for a template (open confirm modal)
+  // Handle clicking "Delete" (opens confirmation modal)
   const handleDeleteClick = (template) => {
     setTemplateToDelete(template);
-    setConfirmName("");  // reset input each time
+    setConfirmName("");
   };
 
-  // Handle confirming the deletion in the modal
+  // Handle confirming deletion
   const confirmDeletion = async () => {
     if (!templateToDelete) return;
     try {
       const name = templateToDelete.name;
       await onDeleteTemplate(templateToDelete);
-      // On success, close modal and notify (template list will update via state)
       setTemplateToDelete(null);
       setConfirmName("");
       alert(`Workout template "${name}" has been deleted.`);
@@ -41,30 +39,44 @@ function WorkoutTemplatesList({ templates, onStartWorkout, onDeleteTemplate }) {
       </div>
 
       {/* List of template cards */}
-      {templates.map(template => (
-        <div key={template.templateID} className="template-card">
-          <h3>{template.name || "Unnamed Template"}</h3>
-          {manageMode ? (
-            <>
-              {/* In manage mode, show Delete button (and future Edit button if needed) */}
-              <button 
-                className="delete-btn" 
-                onClick={() => handleDeleteClick(template)}
-              >
-                Delete
-              </button>
-              {/* (You can add an Edit button here in the future) */}
-            </>
-          ) : (
-            <button onClick={() => onStartWorkout(template)}>
-              Start Workout
-            </button>
-          )}
-          <p>Exercises: {(template.exercises || []).length}</p>
-        </div>
-      ))}
+      {templates.map(template => {
+        // Determine the timestamp of the most recent workout (using provided data or a placeholder)
+        const lastTimeISO = template.lastWorkoutTime || "2025-07-06T18:42:00Z";  // mock date if none
+        const dateObj = new Date(lastTimeISO);
+        // Format date as "Jul 6, 2025"
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        // Format time as "6:42 PM"
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const formattedTime = `${dateStr} – ${timeStr}`;
 
-      {/* Confirmation Modal (shown when templateToDelete is set) */}
+        return (
+          <div key={template.templateID} className="template-card">
+            <h3>{template.name || "Unnamed Template"}</h3>
+            {manageMode ? (
+              <>
+                {/* Manage mode actions */}
+                <button 
+                  className="delete-btn" 
+                  onClick={() => handleDeleteClick(template)}>
+                  Delete
+                </button>
+                {/* (Edit button could go here in future) */}
+              </>
+            ) : (
+              <button onClick={() => onStartWorkout(template)}>
+                Start Workout
+              </button>
+            )}
+            <p>Exercises: {(template.exercises || []).length}</p>
+            {/* NEW: Last workout timestamp display */}
+            <p className="last-workout-time">
+              Last workout: {formattedTime}
+            </p>
+          </div>
+        );
+      })}
+      
+      {/* Confirmation Modal for deletion */}
       {templateToDelete && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -73,25 +85,22 @@ function WorkoutTemplatesList({ templates, onStartWorkout, onDeleteTemplate }) {
               Type the name of the workout template <strong>"{templateToDelete.name}"</strong> to confirm deletion:
             </p>
             <input 
-              type="text" 
-              placeholder="Enter template name to delete" 
-              value={confirmName} 
-              onChange={(e) => setConfirmName(e.target.value)} 
+              type="text"
+              placeholder="Enter template name to delete"
+              value={confirmName}
+              onChange={(e) => setConfirmName(e.target.value)}
             />
             <div className="modal-buttons">
-              <button 
-                onClick={() => {
-                  setTemplateToDelete(null);
-                  setConfirmName("");
-                }}
-              >
+              <button onClick={() => {
+                setTemplateToDelete(null);
+                setConfirmName("");
+              }}>
                 Cancel
               </button>
               <button 
-                className="delete-btn" 
-                onClick={confirmDeletion} 
-                disabled={confirmName.trim() !== templateToDelete.name}
-              >
+                className="delete-btn"
+                onClick={confirmDeletion}
+                disabled={confirmName.trim() !== templateToDelete.name}>
                 Delete Template
               </button>
             </div>

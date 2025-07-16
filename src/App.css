@@ -355,3 +355,10 @@ input {
 .modal-buttons button {
   margin-left: 10px;
 }
+
+/* Make the last-workout timestamp subtle */
+.template-card .last-workout-time {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 0.25rem;
+}
