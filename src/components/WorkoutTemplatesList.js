@@ -40,14 +40,19 @@ function WorkoutTemplatesList({ templates, onStartWorkout, onDeleteTemplate }) {
 
       {/* List of template cards */}
       {templates.map(template => {
-        // Determine the timestamp of the most recent workout (using provided data or a placeholder)
-        const lastTimeISO = template.lastWorkoutTime || "2025-07-06T18:42:00Z";  // mock date if none
-        const dateObj = new Date(lastTimeISO);
-        // Format date as "Jul 6, 2025"
-        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        // Format time as "6:42 PM"
-        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        const formattedTime = `${dateStr} – ${timeStr}`;
+        // Determine the timestamp of the most recent workout (if available)
+        const lastTimeISO = template.lastWorkoutTime;
+        let formattedTime;
+        if (lastTimeISO) {
+          const dateObj = new Date(lastTimeISO);
+          // Format date as "Jul 6, 2025"
+          const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          // Format time as "6:42 PM"
+          const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+          formattedTime = `${dateStr} – ${timeStr}`;
+        } else {
+          formattedTime = "No workouts yet";
+        }
 
         return (
           <div key={template.templateID} className="template-card">
