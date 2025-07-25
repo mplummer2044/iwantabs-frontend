@@ -68,18 +68,23 @@ function App({ signOut, user }) {
         new Date(b.createdAt) - new Date(a.createdAt)
       );
       const templates = res.data.templates || [];
-      // NEW: Attach last workout timestamp to each template
+
+      // Attach last workout timestamp to each template:
       const templatesWithLastTime = templates.map(template => {
         const lastWorkout = sortedHistory.find(w => w.templateID === template.templateID);
-        return { 
-          ...template, 
+        return {
+          ...template,
+          // Use completedAt (if present) or createdAt as the last workout date
           lastWorkoutTime: lastWorkout 
             ? (lastWorkout.completedAt || lastWorkout.createdAt) 
-            : null 
+            : null
         };
       });
+
+      // Update state with templates (including lastWorkoutTime) and sorted history
       setWorkoutTemplates(templatesWithLastTime);
       setWorkoutHistory(sortedHistory);
+
     } catch (err) {
       console.error("Failed to fetch workouts:", err.response?.data || err.message);
     } finally {
